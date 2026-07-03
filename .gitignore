@@ -1,0 +1,39 @@
+# Virtual Environment
+venv/
+.venv/
+ENV/
+env/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Node.js
+node_modules/
+frontend/node_modules/
+
+# Production Build outputs
+dist/
+build/
+frontend/dist/
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+data/
+
+# IDE Configs
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OS Files
+.DS_Store
+Thumbs.db
