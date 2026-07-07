@@ -198,9 +198,16 @@ def health_check():
 async def copilot_query(payload: dict):
     import urllib.request
     import json
+    from src.vector_store import find_relevant_rules
     
     user_query = payload.get("message", "")
     lang = payload.get("lang", "TR")
+    
+    # 1. Fetch relevant manual rules from SQLite (Local Vector Search)
+    local_rules = find_relevant_rules(user_query, top_k=2)
+    context_str = ""
+    if local_rules:
+        context_str = " | ".join([f"({r['title']}) {r['content']}" for r in local_rules])
     
     system_prompt = ""
     try:
@@ -216,14 +223,20 @@ async def copilot_query(payload: dict):
         else:
             system_prompt += "The grid is currently stable with no active alarms. "
             
+        if context_str:
+            system_prompt += "Here are relevant operating guidelines from SQLite Knowledge Base: " + context_str + ". "
+            system_prompt += "You must base your answer on these guidelines and cite the specific rule number if relevant. "
+            
         system_prompt += "Answer the user query briefly and professionally in 2-3 sentences max. "
         if lang == "TR":
             system_prompt += "Answer in Turkish language only."
         else:
             system_prompt += "Answer in English language only."
     except Exception:
-        system_prompt = "You are GridPulse AI. Answer in Turkish if user asks in Turkish, else English."
-
+        system_prompt = "You are GridPulse AI. Answer in Turkish if user asks in Turkish, else English. "
+        if context_str:
+            system_prompt += "SQLite context: " + context_str
+            
     url = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
     headers = {
         "Content-Type": "application/json"
@@ -260,7 +273,13 @@ async def copilot_query(payload: dict):
         
     reply = ""
     lower = user_query.lower()
-    if "durum" in lower or "status" in lower or "kararlılık" in lower or "stability" in lower:
+    
+    # Check if there is an exact hit in our SQLite local rules database first!
+    if local_rules:
+        # Ground the reply on the SQLite vector result!
+        rule = local_rules[0]
+        reply = f"Lokal Bilgi Bankası (RAG) eşleşmesi: [{rule['title']}]. Kılavuz detayı: {rule['content']}" if lang == "TR" else f"Local RAG Knowledge Base match: [{rule['title']}]. Guideline: {rule['content']}"
+    elif "durum" in lower or "status" in lower or "kararlılık" in lower or "stability" in lower:
         if active_anomalies:
             reply = f"Şu an şebekede {len(active_anomalies)} adet kritik anomali tespit edildi. En kritik bölge: {active_anomalies[0]['city']}. Cihaz: {active_anomalies[0]['device']}. Sistem kararlılık indeksi tehlike sınırında." if lang == "TR" else f"Currently, {len(active_anomalies)} critical anomalies are active. Most impacted: {active_anomalies[0]['city']} on device {active_anomalies[0]['device']}."
         else:

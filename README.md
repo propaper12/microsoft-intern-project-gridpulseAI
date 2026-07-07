@@ -1,7 +1,7 @@
 # GridPulseAI ⚡
 ### Microsoft Internship Project - Real-Time AI-SCADA IoT Cable Grid Monitor
 
-**GridPulseAI** is a füturistic, enterprise-grade AI-powered Co-SCADA (Supervisory Control and Data Acquisition) monitoring dashboard. It is designed to track underground high-voltage power cables, analyze soil thermal capacity, calculate solar-induced derating limits, and perform real-time explainable cybersecurity anomaly detection (XAI SHAP).
+**GridPulseAI** is a futuristic, enterprise-grade AI-powered Co-SCADA (Supervisory Control and Data Acquisition) monitoring dashboard. It is designed to track underground high-voltage power cables, analyze soil thermal capacity, calculate solar-induced derating limits, perform real-time explainable cybersecurity anomaly detection (XAI SHAP), and implement an offline local RAG AI Copilot using SQLite vector storage and Microsoft Foundry Local standards.
 
 ---
 
@@ -17,37 +17,50 @@
 *   **🧠 Explainable AI (XAI SHAP) & Diagnostics:**
     *   Neural threat detection identifying voltage anomalies, physical overload, and overheating alerts.
     *   Real-time **SHAP feature importance bars** displaying the AI's exact trigger factors (Load, Temp, Voltage Delta).
+*   **📁 Offline Local RAG & Vector Search (SQLite & Microsoft Foundry Local):**
+    *   **SQLite Vector Storage:** Stores smart grid rules, safety guidelines, and emergency protocols along with their computed embedding vectors in a local `grid_rules_kb.db`.
+    *   **Local Semantic Search:** Performs cosine similarity calculations entirely offline in Python to retrieve relevant operating manuals.
+    *   **Microsoft Foundry Local Integration:** Feeds retrieved context into an on-device local LLM (e.g. Phi-3.5) with graceful cloud fallbacks for fully offline, grounded Q&A.
 *   **⚡ Remote SCADA Cyber Control Overrides:**
     *   Context-aware control operations (❄️ Activate Grid Cooling, 🔄 Balance Grid Phases, ⚡ Derate Current Limits) to mitigate active grid alarms.
-*   **🔊 Latency-Free Synthetic Warning Alarms:**
-    *   Browser-native Web Audio API synthesizer generating warning chimes dynamically without static media assets.
-*   **🔌 Graceful Standalone Fallback:**
-    *   Automatically detects if Docker/ClickHouse/Redpanda are offline and seamlessly transitions to client-side simulated data streams, ensuring the dashboard never crashes during live presentations.
+*   **⚛️ Enlarged AI Copilot Popover & Quick Queries:**
+    *   Features an expanded chat window with one-click **Quick RAG Queries** (⚡ Trafo Aşırı Yük, 🔥 Şarj Cihazı Isınma, 🔌 Voltaj Limitleri, 🍃 Yeşil Güç & Karbon) to demonstrate local vector retrieval immediately.
 
 ---
 
 ## 🏗️ System Architecture
 
 ```mermaid
-graph LR
-    Sensors[📡 IoT Grid Sensors] -->|JSON Telemetry| Redpanda[✉️ Redpanda Kafka Broker]
-    Redpanda -->|Stream Processing| Bytewax[🐝 Bytewax Dataflow Engine]
-    Bytewax -->|ML Diagnostics| XAI[🧠 SHAP Anomaly Classifier]
-    XAI -->|Aggregated Data| ClickHouse[(🗄️ ClickHouse DB)]
-    ClickHouse -->|Queries / Analytics| FastAPI[⚡ FastAPI Server]
-    FastAPI -->|SSE Stream / JSON APIs| React[⚛️ React Vite UI]
-    React -->|Mitigation Signals| SCADA[⚡ Remote SCADA Controllers]
+graph TD
+    subgraph Data Stream Pipeline
+        Sensors[📡 IoT Grid Sensors] -->|JSON Telemetry| Redpanda[✉️ Redpanda Kafka Broker]
+        Redpanda -->|Stream Processing| Bytewax[🐝 Bytewax Dataflow Engine]
+        Bytewax -->|ML Diagnostics| XAI[🧠 SHAP Anomaly Classifier]
+        XAI -->|Aggregated Data| ClickHouse[(🗄️ ClickHouse DB)]
+    end
+
+    subgraph Offline Local RAG
+        SQLite[(📁 SQLite Vector DB)] <-->|Cosine Vector Similarity| VectorStore[🔍 Vector Search Engine]
+    end
+
+    subgraph Service Layer
+        ClickHouse -->|SQL Queries| FastAPI[⚡ FastAPI Server]
+        VectorStore <-->|Local Context| FastAPI
+        FastAPI -->|SSE / JSON API| React[⚛️ React Vite UI]
+        React -->|Operator Chat Queries| FastAPI
+        FastAPI -->|Offline LLM| LLM[🤖 Local LLM / Foundry Local]
+    end
 ```
 
 ---
 
 ## ⚙️ Tech Stack
 
-*   **Frontend:** React 18, Vite, Leaflet (Map Tiles via Google Maps CDN), Recharts.
+*   **Frontend:** React 18, Vite, Leaflet, Recharts.
 *   **Backend:** FastAPI (Python), Uvicorn.
 *   **Data Processing:** Bytewax (Stateful Python/Rust Engine).
 *   **Message Broker:** Redpanda (Kafka compatible).
-*   **Database:** ClickHouse (OLAP), SQLite (fallback metadata), Dragonfly (Redis-compatible cache).
+*   **Database:** ClickHouse (OLAP), SQLite (Vektör Bilgi Bankası), Dragonfly (Redis-compatible cache).
 *   **AI/ML:** scikit-learn, SHAP explainers.
 
 ---
@@ -88,7 +101,15 @@ pip install -r requirements.txt
 
 ---
 
-### Step 3: Run Background Services
+### Step 3: Populate local RAG Vektör Bilgi Bankası (SQLite)
+Initialize the local SQLite database and populate it with smart grid safety rules and computed embeddings:
+```bash
+python src/initialize_kb.py
+```
+
+---
+
+### Step 4: Run Background Services
 Activate your virtual environment and start each script in a separate terminal:
 1.  **FastAPI REST/SSE Server:**
     ```bash
@@ -105,7 +126,7 @@ Activate your virtual environment and start each script in a separate terminal:
 
 ---
 
-### Step 4: Run Frontend Client
+### Step 5: Run Frontend Client
 Navigate to the `frontend/` directory, install packages, and boot Vite dev server:
 ```bash
 cd frontend
@@ -117,5 +138,5 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 ---
 
 ## 🛡️ Presentation Credentials & Notes
-*   **AI Copilot (RAG):** Type grid questions into the chat bubble at the bottom right. The LLM uses RAG on ClickHouse's telemetry table to answer directly.
+*   **AI Copilot (RAG):** Click the blue chat bubble at the bottom right. Click any of the **Quick RAG Queries** (e.g. ⚡ Trafo Aşırı Yük) to trigger local SQLite vector search. You will see the matching rule title prepended to the reply (e.g. `[Lokal Bilgi Bankası (RAG) eşleşmesi: Rule 101]`).
 *   **Offline Mode:** If Docker is not running, the frontend automatically falls back to an offline simulated stream. You can still present the entire project without any databases running!

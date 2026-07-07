@@ -3101,6 +3101,48 @@ function App() {
                       </div>
                     </div>
                   </div>
+              </div>
+            </div>
+
+              {/* SQLite Vektör Bilgi Bankası (RAG) */}
+              <div className="panel" style={{ marginTop: '20px', padding: '20px' }}>
+                <div className="panel-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', marginBottom: '15px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" strokeWidth="2" style={{ width: '18px', height: '18px' }}><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    <h3 style={{ margin: 0, fontSize: '14px', color: 'var(--text-main)' }}>
+                      {lang === 'TR' ? 'Lokal SQLite RAG Vektör Bilgi Bankası (Knowledge Base)' : 'Local SQLite RAG Vector Knowledge Base'}
+                    </h3>
+                  </div>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                    {lang === 'TR' ? 'Bu kılavuz belgeleri çevrimdışı SQLite veritabanında saklanır ve asistan (Copilot) aramalarında anlamsal kosinüs benzerliği ile taranır.' : 'These operating guidelines are stored offline in SQLite and searched semantically using Cosine Similarity during Copilot queries.'}
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '15px' }}>
+                  <div style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                    <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', color: 'var(--cyan)' }}>Rule 101: Transformer Overload Protocol</h4>
+                    <p style={{ margin: 0, fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                      If a Transformer (such as TRAFO_301 or TRAFO_302) experiences a critical overload where the active load exceeds 500kW, the operator must trigger remote load shedding or isolate the device immediately to prevent grid cascade failures.
+                    </p>
+                  </div>
+                  <div style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                    <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', color: 'var(--cyan)' }}>Rule 102: SmartMeter Voltage & Phase Balance</h4>
+                    <p style={{ margin: 0, fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                      SmartMeter voltage phases must be maintained within the standard range of 216V to 244V. If the voltage drops below 200V, it indicates a severe voltage drop. Check local phase balance.
+                    </p>
+                  </div>
+                  <div style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                    <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', color: 'var(--cyan)' }}>Rule 103: EV Charger Thermal Protection Limit</h4>
+                    <p style={{ margin: 0, fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                      EV Charger units (such as CHARGER_201 or CHARGER_202) must operate below a safety threshold of 90°C. If temperature readings exceed 90°C, it triggers a critical overheating warning.
+                    </p>
+                  </div>
+                  <div style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                    <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', color: 'var(--cyan)' }}>Rule 104: Carbon Intensity & Green Routing</h4>
+                    <p style={{ margin: 0, fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                      When UK Grid carbon intensity index is high, operators should prioritize drawing power from renewable sources like wind, solar, and hydro, and schedule charging during off-peak hours.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -3352,7 +3394,7 @@ function App() {
             position: 'absolute',
             bottom: '68px',
             right: '0',
-            width: '320px',
+            width: '450px',
             background: 'var(--bg-panel)',
             border: '1px solid var(--border-color)',
             borderRadius: '12px',
@@ -3366,10 +3408,47 @@ function App() {
           }}>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
-              <strong style={{ fontSize: '12px', color: 'var(--text-main)' }}>🤖 GridPulse AI Copilot</strong>
+              <strong style={{ fontSize: '12px', color: 'var(--text-main)' }}>🌐 GridPulse AI Copilot</strong>
               <span style={{ fontSize: '8px', background: 'var(--green)', color: '#fff', padding: '1px 5px', borderRadius: '3px', fontWeight: 'bold' }}>
-                RAG ACTIVE
+                LOCAL RAG ACTIVE
               </span>
+            </div>
+
+            {/* Hazır Sorular (Quick RAG Prompts) */}
+            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '8px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+              <span style={{ fontSize: '9px', fontWeight: 'bold', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                {lang === 'TR' ? 'Hazır RAG Soruları' : 'Quick RAG Queries'}
+              </span>
+              <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                <button 
+                  type="button"
+                  onClick={() => handleChatSubmit(lang === 'TR' ? "Trafo 301 aşırı yükleme protokolü nedir?" : "What is the protocol for overloaded transformer 301?")}
+                  style={{ background: 'rgba(2, 132, 199, 0.05)', color: 'var(--cyan)', border: '1px solid rgba(2, 132, 199, 0.15)', padding: '3px 8px', borderRadius: '10px', fontSize: '9px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  ⚡ Trafo Aşırı Yük
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => handleChatSubmit(lang === 'TR' ? "EV şarj cihazı sıcaklık sınırı kaçtır?" : "What is the thermal protection limit for EV chargers?")}
+                  style={{ background: 'rgba(2, 132, 199, 0.05)', color: 'var(--cyan)', border: '1px solid rgba(2, 132, 199, 0.15)', padding: '3px 8px', borderRadius: '10px', fontSize: '9px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  🔥 Şarj Cihazı Isınma
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => handleChatSubmit(lang === 'TR' ? "Voltaj düşüşü limitleri ve faz dengesi" : "What is the standard voltage drop limit?")}
+                  style={{ background: 'rgba(2, 132, 199, 0.05)', color: 'var(--cyan)', border: '1px solid rgba(2, 132, 199, 0.15)', padding: '3px 8px', borderRadius: '10px', fontSize: '9px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  🔌 Voltaj Limitleri
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => handleChatSubmit(lang === 'TR' ? "Karbon yoğunluğu yüksekken ne yapılmalı?" : "What should operators do when carbon intensity is high?")}
+                  style={{ background: 'rgba(2, 132, 199, 0.05)', color: 'var(--cyan)', border: '1px solid rgba(2, 132, 199, 0.15)', padding: '3px 8px', borderRadius: '10px', fontSize: '9px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  🍃 Yeşil Güç & Karbon
+                </button>
+              </div>
             </div>
 
             {/* Message History Feed */}
@@ -3383,8 +3462,8 @@ function App() {
               border: '1px solid var(--border-color)', 
               borderRadius: '6px', 
               padding: '10px', 
-              maxHeight: '220px',
-              minHeight: '180px'
+              maxHeight: '380px',
+              minHeight: '300px'
             }}>
               {chatMessages.map((msg) => (
                 <div 
@@ -3406,21 +3485,6 @@ function App() {
               ))}
             </div>
 
-            {/* Quick Prompts */}
-            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-              <button 
-                onClick={() => handleChatSubmit(TRANSLATIONS[lang].copilot_prompt_1)}
-                style={{ background: 'rgba(2, 132, 199, 0.05)', color: 'var(--cyan)', border: '1px solid rgba(2, 132, 199, 0.15)', padding: '2px 8px', borderRadius: '10px', fontSize: '9px', fontWeight: 'bold', cursor: 'pointer' }}
-              >
-                ❓ {lang === 'TR' ? 'Kararlılık?' : 'Stability?'}
-              </button>
-              <button 
-                onClick={() => handleChatSubmit(TRANSLATIONS[lang].copilot_prompt_2)}
-                style={{ background: 'rgba(2, 132, 199, 0.05)', color: 'var(--cyan)', border: '1px solid rgba(2, 132, 199, 0.15)', padding: '2px 8px', borderRadius: '10px', fontSize: '9px', fontWeight: 'bold', cursor: 'pointer' }}
-              >
-                ❓ {lang === 'TR' ? 'Isınma?' : 'Overheating?'}
-              </button>
-            </div>
 
             {/* Message Input Form */}
             <form 
