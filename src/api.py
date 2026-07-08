@@ -4,7 +4,14 @@ from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from kafka import KafkaConsumer
+import os
 import clickhouse_connect
+if os.path.exists(".env"):
+    with open(".env", "r", encoding="utf-8") as f:
+        for line in f:
+            if "=" in line:
+                k, v = line.split("=", 1)
+                os.environ[k.strip()] = v.strip()
 
 app = FastAPI(title="Fraud Detection API")
 
@@ -225,7 +232,29 @@ async def copilot_query(payload: dict):
         
     # 3. Build structured prompt using our new builder
     system_prompt = build_grid_copilot_prompt(user_query, active_anomalies_list, local_rules, lang)
+    
+    # --- TRY GOOGLE GEMINI 2.5 FLASH FIRST ---
+    gemini_key = os.environ.get("GEMINI_API_KEY")
+    if gemini_key:
+        try:
+            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
+            gemini_headers = {"Content-Type": "application/json"}
+            gemini_body = {
+                "contents": [{"parts": [{"text": system_prompt + f"\n\nUser Query: {user_query}"}]}]
+            }
+            gemini_data = json.dumps(gemini_body).encode("utf-8")
+            gemini_req = urllib.request.Request(gemini_url, data=gemini_data, headers=gemini_headers, method="POST")
+            with urllib.request.urlopen(gemini_req, timeout=4) as response:
+                res_body = json.loads(response.read().decode("utf-8"))
+                candidates = res_body.get("candidates", [])
+                if candidates and len(candidates) > 0:
+                    reply = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+                    if reply:
+                        return {"reply": reply, "engine": "Gemini 2.5 Flash (Cloud RAG)"}
+        except Exception as e:
+            print("Gemini API Call failed. Falling back to HuggingFace.", e)
         
+    # --- FALLBACK TO HUGGINGFACE ---
     url = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
     headers = {
         "Content-Type": "application/json"

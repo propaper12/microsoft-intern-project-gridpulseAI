@@ -7,9 +7,22 @@ DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "grid
 
 # Vocabulary keywords for deterministic offline embeddings (must match initialize_kb.py)
 VOCABULARY = [
-    "load", "overload", "transformer", "critical", "voltage", "drop",
-    "stability", "phase", "temperature", "overheat", "charger", "ev",
-    "meter", "carbon", "intensity", "renewables"
+    "load", "yük", "yükleme",
+    "overload", "aşırı yük",
+    "transformer", "trafo",
+    "critical", "kritik",
+    "voltage", "voltaj",
+    "drop", "düşüş", "düşüşü",
+    "stability", "kararlılık", "stabil",
+    "phase", "faz",
+    "temperature", "sıcaklık", "sıcak",
+    "overheat", "ısınma", "aşırı ısınma",
+    "charger", "şarj", "şarjı",
+    "ev", "elektrikli",
+    "meter", "sayaç",
+    "carbon", "karbon",
+    "intensity", "yoğunluk", "yoğunluğu",
+    "renewables", "yenilenebilir", "yeşil"
 ]
 
 def get_embedding(text):

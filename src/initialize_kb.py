@@ -7,11 +7,24 @@ import math
 DB_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 DB_PATH = os.path.join(DB_DIR, "grid_rules_kb.db")
 
-# Vocabulary keywords for deterministic offline embeddings
+# Vocabulary keywords for deterministic offline embeddings (Bilingual support)
 VOCABULARY = [
-    "load", "overload", "transformer", "critical", "voltage", "drop",
-    "stability", "phase", "temperature", "overheat", "charger", "ev",
-    "meter", "carbon", "intensity", "renewables"
+    "load", "yük", "yükleme",
+    "overload", "aşırı yük",
+    "transformer", "trafo",
+    "critical", "kritik",
+    "voltage", "voltaj",
+    "drop", "düşüş", "düşüşü",
+    "stability", "kararlılık", "stabil",
+    "phase", "faz",
+    "temperature", "sıcaklık", "sıcak",
+    "overheat", "ısınma", "aşırı ısınma",
+    "charger", "şarj", "şarjı",
+    "ev", "elektrikli",
+    "meter", "sayaç",
+    "carbon", "karbon",
+    "intensity", "yoğunluk", "yoğunluğu",
+    "renewables", "yenilenebilir", "yeşil"
 ]
 
 def get_embedding(text):
