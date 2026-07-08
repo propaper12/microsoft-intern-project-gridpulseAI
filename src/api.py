@@ -199,44 +199,33 @@ async def copilot_query(payload: dict):
     import urllib.request
     import json
     from src.vector_store import find_relevant_rules
+    from src.prompt_builder import build_grid_copilot_prompt
     
     user_query = payload.get("message", "")
     lang = payload.get("lang", "TR")
     
     # 1. Fetch relevant manual rules from SQLite (Local Vector Search)
     local_rules = find_relevant_rules(user_query, top_k=2)
-    context_str = ""
-    if local_rules:
-        context_str = " | ".join([f"({r['title']}) {r['content']}" for r in local_rules])
     
-    system_prompt = ""
+    # 2. Fetch active anomalies from ClickHouse
+    active_anomalies_list = []
     try:
         client = get_clickhouse_client()
         result = client.query("SELECT device, city, reason, truth_score, fact_check_result FROM bot_alerts WHERE truth_score < 50 ORDER BY timestamp DESC LIMIT 3")
-        anomalies_info = []
         for r in result.result_set:
-            anomalies_info.append(f"Device: {r[0]}, City: {r[1]}, Reason: {r[2]}, Stability: {r[3]}%, Info: {r[4]}")
+            active_anomalies_list.append({
+                "device": r[0],
+                "city": r[1],
+                "reason": r[2],
+                "stability_score": r[3],
+                "diagnostics": r[4]
+            })
+    except Exception as e:
+        print("Failed to fetch anomalies from ClickHouse:", e)
         
-        system_prompt = "You are GridPulse AI, an expert real-time grid management assistant. "
-        if anomalies_info:
-            system_prompt += "Active grid anomalies detected in ClickHouse: " + " | ".join(anomalies_info) + ". "
-        else:
-            system_prompt += "The grid is currently stable with no active alarms. "
-            
-        if context_str:
-            system_prompt += "Here are relevant operating guidelines from SQLite Knowledge Base: " + context_str + ". "
-            system_prompt += "You must base your answer on these guidelines and cite the specific rule number if relevant. "
-            
-        system_prompt += "Answer the user query briefly and professionally in 2-3 sentences max. "
-        if lang == "TR":
-            system_prompt += "Answer in Turkish language only."
-        else:
-            system_prompt += "Answer in English language only."
-    except Exception:
-        system_prompt = "You are GridPulse AI. Answer in Turkish if user asks in Turkish, else English. "
-        if context_str:
-            system_prompt += "SQLite context: " + context_str
-            
+    # 3. Build structured prompt using our new builder
+    system_prompt = build_grid_copilot_prompt(user_query, active_anomalies_list, local_rules, lang)
+        
     url = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
     headers = {
         "Content-Type": "application/json"
