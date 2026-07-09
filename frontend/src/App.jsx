@@ -245,6 +245,50 @@ function App() {
   });
   const [vectorSearchQuery, setVectorSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [selectedRagDetails, setSelectedRagDetails] = useState(null);
+  const [textToVector, setTextToVector] = useState('');
+  const [vectorResult, setVectorResult] = useState([]);
+  const [compareTextA, setCompareTextA] = useState('');
+  const [compareTextB, setCompareTextB] = useState('');
+  const [compareScore, setCompareScore] = useState(null);
+  const [compareLoading, setCompareLoading] = useState(false);
+
+  const handleVectorize = async (text) => {
+    if (!text.trim()) return;
+    try {
+      const res = await fetch('http://localhost:8000/api/vectorize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      const data = await res.json();
+      if (data && data.vector) {
+        setVectorResult(data.vector);
+      }
+    } catch (e) {
+      console.error("Vectorization failed", e);
+    }
+  };
+
+  const handleVectorCompare = async () => {
+    if (!compareTextA.trim() || !compareTextB.trim()) return;
+    setCompareLoading(true);
+    try {
+      const res = await fetch('http://localhost:8000/api/vector_compare', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text_a: compareTextA, text_b: compareTextB })
+      });
+      const data = await res.json();
+      if (data && typeof data.similarity === 'number') {
+        setCompareScore(data.similarity);
+      }
+    } catch (e) {
+      console.error("Vector comparison failed", e);
+    } finally {
+      setCompareLoading(false);
+    }
+  };
 
   const handleVectorSearch = async () => {
     if (!vectorSearchQuery.trim()) return;
@@ -352,7 +396,8 @@ function App() {
         id: Date.now() + 1, 
         sender: 'ai', 
         text: aiReply,
-        engine: engine
+        engine: engine,
+        rag_details: data.rag_details
       }]);
     } catch (e) {
       console.error("AI Copilot request error", e);
@@ -3180,130 +3225,227 @@ function App() {
               </div>
             </div>
 
-              {/* SQLite Vektör Bilgi Bankası (RAG) */}
-              <div className="panel" style={{ marginTop: '20px', padding: '20px' }}>
-                <div className="panel-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', marginBottom: '15px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" strokeWidth="2" style={{ width: '18px', height: '18px' }}><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                    <h3 style={{ margin: 0, fontSize: '14px', color: 'var(--text-main)' }}>
-                      {lang === 'TR' ? 'Lokal SQLite RAG Vektör Bilgi Bankası (Knowledge Base)' : 'Local SQLite RAG Vector Knowledge Base'}
-                    </h3>
+              {/* SQLite Vektör Bilgi Bankası (RAG) & Vektör Matematik Laboratuvarı */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '20px', marginTop: '20px' }}>
+                
+                {/* Sol Panel: SQLite Bilgi Bankası */}
+                <div className="panel" style={{ padding: '20px' }}>
+                  <div className="panel-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', marginBottom: '15px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" strokeWidth="2" style={{ width: '18px', height: '18px' }}><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                      <h3 style={{ margin: 0, fontSize: '14px', color: 'var(--text-main)' }}>
+                        {lang === 'TR' ? 'Lokal SQLite RAG Vektör Bilgi Bankası (Knowledge Base)' : 'Local SQLite RAG Vector Knowledge Base'}
+                      </h3>
+                    </div>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                      {lang === 'TR' ? 'Bu kılavuz belgeleri çevrimdışı SQLite veritabanında saklanır ve asistan (Copilot) aramalarında anlamsal kosinüs benzerliği ile taranır.' : 'These operating guidelines are stored offline in SQLite and searched semantically using Cosine Similarity during Copilot queries.'}
+                    </span>
                   </div>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                    {lang === 'TR' ? 'Bu kılavuz belgeleri çevrimdışı SQLite veritabanında saklanır ve asistan (Copilot) aramalarında anlamsal kosinüs benzerliği ile taranır.' : 'These operating guidelines are stored offline in SQLite and searched semantically using Cosine Similarity during Copilot queries.'}
-                  </span>
-                </div>
 
-                {/* Canlı Semantik Vektör Arama Çubuğu */}
-                <div style={{ marginBottom: '15px', display: 'flex', gap: '8px' }}>
-                  <input 
-                    type="text"
-                    value={vectorSearchQuery}
-                    onChange={(e) => setVectorSearchQuery(e.target.value)}
-                    placeholder={lang === 'TR' ? "Kosinüs benzerliği ile kurallarda semantik arama yapın... (Örn: 'voltaj', 'overload')" : "Perform semantic vector search using Cosine Similarity... (e.g. 'voltage', 'overload')"}
-                    style={{ 
-                      flex: 1, 
-                      padding: '6px 12px', 
-                      fontSize: '11px', 
-                      background: 'rgba(255,255,255,0.02)', 
-                      border: '1px solid var(--border-color)', 
-                      borderRadius: '6px', 
-                      color: 'var(--text-main)' 
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleVectorSearch();
-                    }}
-                  />
-                  <button 
-                    type="button"
-                    onClick={handleVectorSearch}
-                    style={{ 
-                      background: 'var(--cyan)', 
-                      color: '#fff', 
-                      border: 'none', 
-                      borderRadius: '6px', 
-                      padding: '6px 15px', 
-                      fontSize: '11px', 
-                      fontWeight: 'bold', 
-                      cursor: 'pointer' 
-                    }}
-                  >
-                    🔍 {lang === 'TR' ? 'Semantik Ara' : 'Vector Search'}
-                  </button>
-                  {(vectorSearchQuery || searchResults.length > 0) && (
-                    <button 
-                      type="button"
-                      onClick={() => {
-                        setVectorSearchQuery('');
-                        setSearchResults([]);
-                      }}
+                  {/* Canlı Semantik Vektör Arama Çubuğu */}
+                  <div style={{ marginBottom: '15px', display: 'flex', gap: '8px' }}>
+                    <input 
+                      type="text"
+                      value={vectorSearchQuery}
+                      onChange={(e) => setVectorSearchQuery(e.target.value)}
+                      placeholder={lang === 'TR' ? "Kosinüs benzerliği ile kurallarda semantik arama yapın... (Örn: 'voltaj', 'overload')" : "Perform semantic vector search using Cosine Similarity... (e.g. 'voltage', 'overload')"}
                       style={{ 
-                        background: 'rgba(255,255,255,0.05)', 
-                        color: 'var(--text-main)', 
-                        border: '1px solid var(--border-color)', 
-                        borderRadius: '6px', 
+                        flex: 1, 
                         padding: '6px 12px', 
                         fontSize: '11px', 
+                        background: 'rgba(255,255,255,0.02)', 
+                        border: '1px solid var(--border-color)', 
+                        borderRadius: '6px', 
+                        color: 'var(--text-main)' 
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleVectorSearch();
+                      }}
+                    />
+                    <button 
+                      type="button"
+                      onClick={handleVectorSearch}
+                      style={{ 
+                        background: 'var(--cyan)', 
+                        color: '#fff', 
+                        border: 'none', 
+                        borderRadius: '6px', 
+                        padding: '6px 15px', 
+                        fontSize: '11px', 
+                        fontWeight: 'bold', 
                         cursor: 'pointer' 
                       }}
                     >
-                      {lang === 'TR' ? 'Temizle' : 'Reset'}
+                      🔍 {lang === 'TR' ? 'Semantik Ara' : 'Vector Search'}
                     </button>
-                  )}
+                    {(vectorSearchQuery || searchResults.length > 0) && (
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setVectorSearchQuery('');
+                          setSearchResults([]);
+                        }}
+                        style={{ 
+                          background: 'rgba(255,255,255,0.05)', 
+                          color: 'var(--text-main)', 
+                          border: '1px solid var(--border-color)', 
+                          borderRadius: '6px', 
+                          padding: '6px 12px', 
+                          fontSize: '11px', 
+                          cursor: 'pointer' 
+                        }}
+                      >
+                        {lang === 'TR' ? 'Temizle' : 'Reset'}
+                      </button>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '15px' }}>
+                    {searchResults.length > 0 ? (
+                      searchResults.map((rule) => (
+                        <div key={rule.id} style={{ padding: '12px', background: 'rgba(2, 132, 199, 0.02)', border: '1px solid var(--cyan)', borderRadius: '6px', position: 'relative' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                            <h4 style={{ margin: 0, fontSize: '11px', color: 'var(--cyan)' }}>{rule.title}</h4>
+                            <span style={{ fontSize: '9px', background: 'rgba(2, 132, 199, 0.1)', color: 'var(--cyan)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                              Match: {rule.score}%
+                            </span>
+                          </div>
+                          <p style={{ margin: 0, fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                            {rule.content}
+                          </p>
+                        </div>
+                      ))
+                    ) : dbRules.length > 0 ? (
+                      dbRules.map((rule) => (
+                        <div key={rule.id} style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                          <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', color: 'var(--cyan)' }}>{rule.title}</h4>
+                          <p style={{ margin: 0, fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                            {rule.content}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      [
+                        {
+                          "title": "Rule 101: Transformer Overload Protocol",
+                          "content": "If a Transformer (such as TRAFO_301 or TRAFO_302) experiences a critical overload where the active load exceeds 500kW..."
+                        },
+                        {
+                          "title": "Rule 102: SmartMeter Voltage Range and Phase Balance",
+                          "content": "SmartMeter voltage phases must be maintained within the standard range of 216V to 244V..."
+                        },
+                        {
+                          "title": "Rule 103: EV Charger Thermal Protection Limit",
+                          "content": "EV Charger units (such as CHARGER_201 or CHARGER_202) must operate below a safety threshold of 90°C..."
+                        },
+                        {
+                          "title": "Rule 104: Carbon Intensity & Green Routing",
+                          "content": "When UK Grid carbon intensity index is high, operators should prioritize drawing power from renewable sources..."
+                        }
+                      ].map((rule, idx) => (
+                        <div key={idx} style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                          <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', color: 'var(--cyan)' }}>{rule.title}</h4>
+                          <p style={{ margin: 0, fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                            {rule.content}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '15px' }}>
-                  {searchResults.length > 0 ? (
-                    searchResults.map((rule) => (
-                      <div key={rule.id} style={{ padding: '12px', background: 'rgba(2, 132, 199, 0.02)', border: '1px solid var(--cyan)', borderRadius: '6px', position: 'relative' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                          <h4 style={{ margin: 0, fontSize: '11px', color: 'var(--cyan)' }}>{rule.title}</h4>
-                          <span style={{ fontSize: '9px', background: 'rgba(2, 132, 199, 0.1)', color: 'var(--cyan)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
-                            Match: {rule.score}%
-                          </span>
+                {/* Sağ Panel: RAG & Vektör Matematik Laboratuvarı */}
+                <div className="panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  <div className="panel-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '16px' }}>🧪</span>
+                      <h3 style={{ margin: 0, fontSize: '13px', color: 'var(--text-main)', fontWeight: 'bold' }}>
+                        {lang === 'TR' ? 'Vektör & Kosinüs Matematik Simülatörü' : 'Vector & Cosine Math Lab'}
+                      </h3>
+                    </div>
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                      {lang === 'TR' ? 'Metinleri anlık olarak 32 boyutlu vektörlere dönüştürün ve anlamsal mesafeyi hesaplayın.' : 'Convert text to 32-D vectors in real-time and calculate semantic distance.'}
+                    </span>
+                  </div>
+
+                  {/* Test 1: Real-Time Vectorizer */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', textAlign: 'left' }}>
+                    <strong style={{ fontSize: '10.5px', color: 'var(--cyan)' }}>
+                      {lang === 'TR' ? '1. Metin Vektörleştirici (Vectorizer)' : '1. Text Vectorizer'}
+                    </strong>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <input 
+                        type="text"
+                        value={textToVector}
+                        onChange={(e) => setTextToVector(e.target.value)}
+                        placeholder={lang === 'TR' ? "Bir kelime girin... (Örn: trafo)" : "Enter a word... (e.g. transformer)"}
+                        style={{ flex: 1, padding: '5px 10px', fontSize: '11px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'var(--text-main)' }}
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => handleVectorizer(textToVector)}
+                        style={{ background: 'var(--cyan)', color: '#fff', border: 'none', borderRadius: '4px', padding: '5px 10px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}
+                      >
+                        {lang === 'TR' ? 'Vektörle' : 'Vectorize'}
+                      </button>
+                    </div>
+                    {vectorResult.length > 0 && (
+                      <div style={{ fontFamily: 'JetBrains Mono', fontSize: '9px', background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '4px', border: '1px solid var(--border-color)', color: 'var(--text-muted)', wordBreak: 'break-all', maxHeight: '70px', overflowY: 'auto' }}>
+                        [{vectorResult.map(v => v.toFixed(4)).join(', ')}]
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Test 2: Cosine Similarity Simulator */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid var(--border-color)', paddingTop: '12px', textAlign: 'left' }}>
+                    <strong style={{ fontSize: '10.5px', color: 'var(--cyan)' }}>
+                      {lang === 'TR' ? '2. Canlı Kosinüs Benzerliği Karşılaştırıcısı' : '2. Live Cosine Similarity Tester'}
+                    </strong>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                      <input 
+                        type="text"
+                        value={compareTextA}
+                        onChange={(e) => setCompareTextA(e.target.value)}
+                        placeholder={lang === 'TR' ? "Metin A (Örn: trafo aşırı yüklendi)" : "Text A (e.g. transformer overloaded)"}
+                        style={{ padding: '5px 10px', fontSize: '11px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'var(--text-main)' }}
+                      />
+                      <input 
+                        type="text"
+                        value={compareTextB}
+                        onChange={(e) => setCompareTextB(e.target.value)}
+                        placeholder={lang === 'TR' ? "Metin B (Örn: trafo yük limiti aşıldı)" : "Text B (e.g. transformer limit exceeded)"}
+                        style={{ padding: '5px 10px', fontSize: '11px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'var(--text-main)' }}
+                      />
+                      <button 
+                        type="button"
+                        onClick={handleVectorCompare}
+                        disabled={compareLoading}
+                        style={{ background: 'var(--green)', color: '#fff', border: 'none', borderRadius: '4px', padding: '6px 12px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
+                      >
+                        {compareLoading ? '...' : (lang === 'TR' ? '⚡ Benzerlik Hesapla' : '⚡ Calculate Similarity')}
+                      </button>
+                    </div>
+                    {compareScore !== null && (
+                      <div style={{ background: 'rgba(2, 132, 199, 0.02)', border: '1px solid var(--cyan)', borderRadius: '6px', padding: '10px', marginTop: '4px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 'bold', marginBottom: '4px' }}>
+                          <span>{lang === 'TR' ? 'Kosinüs Benzerliği:' : 'Cosine Similarity:'}</span>
+                          <span style={{ color: 'var(--cyan)' }}>{compareScore}%</span>
                         </div>
-                        <p style={{ margin: 0, fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                          {rule.content}
-                        </p>
+                        <div style={{ height: '6px', background: 'rgba(0,0,0,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ width: `${compareScore}%`, height: '100%', background: 'var(--cyan)' }} />
+                        </div>
+                        <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', marginTop: '6px' }}>
+                          {compareScore > 75 
+                            ? (lang === 'TR' ? '✓ Güçlü Eşleşme (Anlamsal olarak çok yakın!)' : '✓ Strong Match (Semantically very close!)')
+                            : compareScore > 40
+                            ? (lang === 'TR' ? '⚡ Kısmi Eşleşme (Bazı benzer anahtar kelimeler)' : '⚡ Partial Match (Some similar keywords)')
+                            : (lang === 'TR' ? '✕ Zayıf Eşleşme (Anlamsal olarak uzak)' : '✕ Weak Match (Semantically distant)')}
+                        </span>
                       </div>
-                    ))
-                  ) : dbRules.length > 0 ? (
-                    dbRules.map((rule) => (
-                      <div key={rule.id} style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
-                        <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', color: 'var(--cyan)' }}>{rule.title}</h4>
-                        <p style={{ margin: 0, fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                          {rule.content}
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    [
-                      {
-                        "title": "Rule 101: Transformer Overload Protocol",
-                        "content": "If a Transformer (such as TRAFO_301 or TRAFO_302) experiences a critical overload where the active load exceeds 500kW..."
-                      },
-                      {
-                        "title": "Rule 102: SmartMeter Voltage Range and Phase Balance",
-                        "content": "SmartMeter voltage phases must be maintained within the standard range of 216V to 244V..."
-                      },
-                      {
-                        "title": "Rule 103: EV Charger Thermal Protection Limit",
-                        "content": "EV Charger units (such as CHARGER_201 or CHARGER_202) must operate below a safety threshold of 90°C..."
-                      },
-                      {
-                        "title": "Rule 104: Carbon Intensity & Green Routing",
-                        "content": "When UK Grid carbon intensity index is high, operators should prioritize drawing power from renewable sources..."
-                      }
-                    ].map((rule, idx) => (
-                      <div key={idx} style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
-                        <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', color: 'var(--cyan)' }}>{rule.title}</h4>
-                        <p style={{ margin: 0, fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                          {rule.content}
-                        </p>
-                      </div>
-                    ))
-                  )}
+                    )}
+                  </div>
                 </div>
+
               </div>
             </div>
           )}
@@ -3521,6 +3663,121 @@ function App() {
         </div>
       )}
 
+      {/* RAG Execution Path Inspector Modal */}
+      {selectedRagDetails && (
+        <div className="modal-overlay" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.4)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div className="panel" style={{
+            width: '650px',
+            background: 'var(--bg-panel)',
+            border: '1px solid var(--cyan)',
+            borderRadius: '12px',
+            padding: '24px',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.25)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            textAlign: 'left'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+              <h3 style={{ margin: 0, fontSize: '13px', textTransform: 'uppercase', color: 'var(--cyan)', letterSpacing: '1px', fontWeight: 'bold' }}>
+                🧠 RAG Execution Path Inspector (Denetim Raporu)
+              </h3>
+              <button 
+                onClick={() => setSelectedRagDetails(null)}
+                style={{ background: 'none', border: 'none', fontSize: '20px', color: 'var(--text-muted)', cursor: 'pointer' }}
+              >
+                &times;
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', overflowY: 'auto', maxHeight: '420px', fontSize: '11px' }}>
+              
+              {/* Step 1: User Query & Vectorization */}
+              <div style={{ padding: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                <div style={{ fontWeight: 'bold', color: 'var(--cyan)', marginBottom: '5px', fontSize: '10px' }}>STEP 1: User Query & Vectorization (32-D Embedding Array)</div>
+                <div style={{ color: 'var(--text-main)', marginBottom: '6px' }}>"Query: {selectedRagDetails.query}"</div>
+                <div style={{ fontFamily: 'JetBrains Mono', fontSize: '9.5px', background: 'rgba(0,0,0,0.2)', padding: '6px', borderRadius: '4px', wordBreak: 'break-all', color: 'var(--text-muted)' }}>
+                  [{selectedRagDetails.query_vector ? selectedRagDetails.query_vector.slice(0, 10).map(v => v.toFixed(4)).join(', ') + ' ... ' + selectedRagDetails.query_vector.slice(-5).map(v => v.toFixed(4)).join(', ') : '0.0000'}]
+                </div>
+              </div>
+
+              {/* Step 2: Semantic SQLite Lookup */}
+              <div style={{ padding: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                <div style={{ fontWeight: 'bold', color: 'var(--cyan)', marginBottom: '5px', fontSize: '10px' }}>STEP 2: Semantic Knowledge Retrieval (SQLite Cosine Similarity)</div>
+                {selectedRagDetails.retrieved_rules && selectedRagDetails.retrieved_rules.length > 0 ? (
+                  selectedRagDetails.retrieved_rules.map((rule, idx) => (
+                    <div key={idx} style={{ marginTop: '6px', borderBottom: idx < selectedRagDetails.retrieved_rules.length - 1 ? '1px dashed var(--border-color)' : 'none', paddingBottom: '6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
+                        <span>{rule.title}</span>
+                        <span style={{ color: 'var(--cyan)' }}>Match Score: {rule.score}%</span>
+                      </div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '10px', marginTop: '2px' }}>{rule.content}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ color: 'var(--red)', fontStyle: 'italic' }}>No matching rules retrieved from SQLite.</div>
+                )}
+              </div>
+
+              {/* Step 3: ClickHouse Ingestion */}
+              <div style={{ padding: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                <div style={{ fontWeight: 'bold', color: 'var(--cyan)', marginBottom: '5px', fontSize: '10px' }}>STEP 3: Live Substation Telemetry Context (ClickHouse)</div>
+                {selectedRagDetails.active_anomalies && selectedRagDetails.active_anomalies.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {selectedRagDetails.active_anomalies.map((anom, idx) => (
+                      <div key={idx} style={{ padding: '4px', background: 'rgba(239, 68, 68, 0.02)', borderRadius: '4px' }}>
+                        🚨 Device <span style={{ color: 'var(--cyan)', fontWeight: 'bold' }}>{anom.device}</span> ({anom.city}) - Status: <span style={{ color: 'var(--red)' }}>{anom.reason}</span> (Stability Score: {anom.stability_score}%)
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ color: 'var(--green)', fontStyle: 'italic' }}>All systems stable, no active telemetry anomalies retrieved from ClickHouse.</div>
+                )}
+              </div>
+
+              {/* Step 4: System Prompt Compilation */}
+              <div style={{ padding: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                <div style={{ fontWeight: 'bold', color: 'var(--cyan)', marginBottom: '5px', fontSize: '10px' }}>STEP 4: System Instructions & Context Injection (Ham Prompt Payload)</div>
+                <pre style={{ margin: 0, fontFamily: 'JetBrains Mono', fontSize: '9px', background: 'rgba(0,0,0,0.2)', padding: '6px', borderRadius: '4px', overflowX: 'auto', whiteSpace: 'pre-wrap', color: 'var(--text-muted)' }}>
+                  {selectedRagDetails.system_prompt}
+                </pre>
+              </div>
+
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+              <button 
+                onClick={() => setSelectedRagDetails(null)}
+                style={{
+                  background: 'var(--cyan)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '8px 20px',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                  fontWeight: 'bold'
+                }}
+              >
+                {lang === 'TR' ? 'Analizi Kapat' : 'Close Analysis'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Floating AI Chat Popover */}
       <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 1000 }}>
         {/* Toggle Button */}
@@ -3648,20 +3905,43 @@ function App() {
                 >
                   <span>{msg.textKey ? TRANSLATIONS[lang][msg.textKey] : msg.text}</span>
                   {msg.sender === 'ai' && (
-                    <span style={{ 
-                      fontSize: '8px', 
-                      color: 'var(--cyan)', 
-                      opacity: 0.8, 
-                      alignSelf: 'flex-start',
-                      fontFamily: 'JetBrains Mono, monospace',
-                      borderTop: '1px solid rgba(255,255,255,0.05)',
-                      paddingTop: '2px',
-                      marginTop: '2px',
-                      display: 'block',
-                      width: '100%'
-                    }}>
-                      ⚙️ {msg.engine || (lang === 'TR' ? "Gemini 2.5 Flash" : "Gemini 2.5 Flash")}
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                      <span style={{ 
+                        fontSize: '8px', 
+                        color: 'var(--cyan)', 
+                        opacity: 0.8, 
+                        alignSelf: 'flex-start',
+                        fontFamily: 'JetBrains Mono, monospace',
+                        borderTop: '1px solid rgba(255,255,255,0.05)',
+                        paddingTop: '2px',
+                        marginTop: '2px',
+                        display: 'block',
+                        width: '100%'
+                      }}>
+                        ⚙️ {msg.engine || (lang === 'TR' ? "Gemini 2.5 Flash" : "Gemini 2.5 Flash")}
+                      </span>
+                      {msg.rag_details && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedRagDetails(msg.rag_details)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--cyan)',
+                            fontSize: '8px',
+                            cursor: 'pointer',
+                            padding: 0,
+                            marginTop: '4px',
+                            textAlign: 'left',
+                            display: 'block',
+                            fontWeight: 'bold',
+                            textDecoration: 'underline'
+                          }}
+                        >
+                          🔍 {lang === 'TR' ? 'RAG Analiz Raporu (Inspect RAG)' : 'RAG Analysis Report (Inspect RAG)'}
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
               ))}

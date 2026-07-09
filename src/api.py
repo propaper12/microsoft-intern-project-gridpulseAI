@@ -281,16 +281,32 @@ def get_system_status():
     except Exception:
         pass
         
-    # 4. Gemini 2.5 Status
-    gemini_status = "OFFLINE"
-    if os.environ.get("GEMINI_API_KEY"):
-        gemini_status = "ONLINE"
-        
     return {
         "sqlite_rag": sqlite_status,
         "clickhouse": clickhouse_status,
         "redpanda": redpanda_status,
         "gemini": gemini_status
+    }
+
+@app.post("/api/vectorize")
+async def vectorize_text(payload: dict):
+    from src.vector_store import get_embedding
+    text = payload.get("text", "")
+    vector = get_embedding(text)
+    return {"text": text, "vector": vector}
+
+@app.post("/api/vector_compare")
+async def compare_vectors(payload: dict):
+    from src.vector_store import get_embedding, cosine_similarity
+    text_a = payload.get("text_a", "")
+    text_b = payload.get("text_b", "")
+    vec_a = get_embedding(text_a)
+    vec_b = get_embedding(text_b)
+    similarity = cosine_similarity(vec_a, vec_b)
+    return {
+        "text_a": text_a,
+        "text_b": text_b,
+        "similarity": round(similarity * 100, 1)
     }
 
 @app.post("/api/copilot")
@@ -411,6 +427,25 @@ async def copilot_query(payload: dict):
         engine = "GridPulse Local AI Model"
         
     # Write Audit Trail Log
+    from src.vector_store import get_embedding
+    query_vector = get_embedding(user_query)
+    
+    retrieved_rules_info = []
+    for r in local_rules:
+        retrieved_rules_info.append({
+            "title": r.get("title", ""),
+            "content": r.get("content", ""),
+            "score": round(r.get("score", 0.0) * 100, 1)
+        })
+        
+    rag_details = {
+        "query": user_query,
+        "query_vector": query_vector,
+        "retrieved_rules": retrieved_rules_info,
+        "active_anomalies": active_anomalies_list,
+        "system_prompt": system_prompt
+    }
+    
     latency_ms = int((time.time() - start_time) * 1000)
     log_entry = {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -436,4 +471,4 @@ async def copilot_query(payload: dict):
     except Exception as le:
         print("Failed to write RAG audit log:", le)
         
-    return {"reply": reply, "engine": engine}
+    return {"reply": reply, "engine": engine, "rag_details": rag_details}
