@@ -7,6 +7,17 @@
 
 ## 🚀 Key Features
 
+*   **🧠 Yapay Zeka Beyni & Kontrol Odası (AI Brain Control Room):** 
+    *   A full-screen primary workspace tab that puts AI at the core of SCADA operations.
+    *   **AI System Observability Context:** Displays real-time parameters (ClickHouse anomaly count, SQLite RAG rules count, weather load multipliers) that the AI automatically reads.
+    *   **AI Autopilot Diagnostics:** Execute one-click full grid scans causing the AI to retrieve ClickHouse warnings, compare SQLite guidelines, and compile comprehensive diagnostic reports.
+*   **🔍 RAG Akış Analizi (RAG Execution Path Inspector):**
+    *   Click **"🔍 RAG Analiz Raporu"** under any AI chat reply to view a neon-styled step-by-step diagnostic modal.
+    *   Inspect exactly: (1) The user query's 32-D vectorized representation, (2) The retrieved SQLite rules with Cosine Similarity scores, (3) Live ClickHouse telemetry anomalies, and (4) The final augmented system prompt.
+*   **🧪 Vektör & Kosinüs Matematik Simülatörü (Vector Cosine Math Lab):**
+    *   An interactive math playground in the Rules tab to prove vector space mechanics.
+    *   **Text Vectorizer:** Input any word and view its L2-normalized 32-dimensional float array representation.
+    *   **Live Cosine Similarity Tester:** Input two different sentences (e.g. *trafo* vs *transformer*) and compute their semantic similarity percentage with a live progress bar.
 *   **🗺️ Geographic SCADA Map (Google Maps Integration):** 
     *   Leverages high-speed Google Maps Roadmap CDN layers to load instantly.
     *   Interactive **SVG Cable Routes** (Polylines) across 9 key locations in London, changing color dynamically based on real-time cable thermal stress.
@@ -23,8 +34,8 @@
     *   **Microsoft Foundry Local Integration:** Feeds retrieved context into an on-device local LLM (e.g. Phi-3.5) with graceful cloud fallbacks for fully offline, grounded Q&A.
 *   **⚡ Remote SCADA Cyber Control Overrides:**
     *   Context-aware control operations (❄️ Activate Grid Cooling, 🔄 Balance Grid Phases, ⚡ Derate Current Limits) to mitigate active grid alarms.
-*   **⚛️ Enlarged AI Copilot Popover & Quick Queries:**
-    *   Features an expanded chat window with one-click **Quick RAG Queries** (⚡ Trafo Aşırı Yük, 🔥 Şarj Cihazı Isınma, 🔌 Voltaj Limitleri, 🍃 Yeşil Güç & Karbon) to demonstrate local vector retrieval immediately.
+*   **🟢 Glowing Service Health LEDs:**
+    *   A futuristic status LED panel in the topbar indicating the live connection status (ONLINE/OFFLINE) of ClickHouse (CH), Redpanda (RP), SQLite RAG (RAG), and Gemini.
 
 ---
 
@@ -151,5 +162,7 @@ Explore the comprehensive technical guides and manuals detailing the GridPulseAI
 ---
 
 ## 🛡️ Presentation Credentials & Notes
-*   **AI Copilot (RAG):** Click the blue chat bubble at the bottom right. Click any of the **Quick RAG Queries** (e.g. ⚡ Trafo Aşırı Yük) to trigger local SQLite vector search. The Gemini 2.5 Flash model will respond, and its source-model badge will be visible at the bottom of the chat bubble.
-*   **Offline Mode:** If Docker is not running, the frontend automatically falls back to an offline simulated stream. You can still present the entire project without any databases running!
+*   **🧠 Yapay Zeka Beyni (AI Control Room):** Select the `🧠 Yapay Zeka Beyni` tab from the left sidebar navigation. Ask questions in the large AI Terminal or click **"🤖 Tam Şebeke Analizi Tetikle"** to trigger a full system telemetry diagnostics run.
+*   **🔍 RAG Akış Analizi (RAG Inspector):** Once the AI replies, click **"🔍 RAG Analiz Raporu"** under the bubble to show the jury the exact 32-D query vector and SQLite cosine matching scores.
+*   **🧪 Vektör Matematik Simülatörü:** Select the `Rules` tab and use the right-hand **Vector Cosine Math Lab** panel to type words, inspect 32-D vectors, and calculate similarity between sentences in real-time.
+*   **🟢 Service LEDs & Offline Mode:** The topbar LEDs dynamically check database connections. If Docker is offline, the React frontend falls back to simulated pipelines seamlessly to maintain a 100% stable presentation demo.

@@ -49,3 +49,11 @@ When a query is processed via `find_relevant_rules(query, top_k)`:
 3.  The engine loads all rules and their pre-computed vectors from SQLite.
 4.  It calculates the dot product (Cosine Similarity) of the query vector against each document vector.
 5.  It sorts the records by similarity in descending order and returns the top $k$ matching rules with scores above `0.0`.
+
+---
+
+## 🧪 Interactive RAG Diagnostics & Vector Lab
+
+To make this retrieval pipeline inspectable and transparent for academic reviews:
+1.  **RAG Execution Path Inspector:** Captures the computed 32-D query vector $\mathbf{q}$, SQLite retrieval scores, active ClickHouse telemetry flags, and the compiled system prompt context, returning them as metadata in the `/api/copilot` response JSON. The UI renders this inside a dedicated neon trace modal.
+2.  **Vector & Cosine Math Lab Widget:** Exposes `/api/vectorize` and `/api/vector_compare` endpoints. Operators can input arbitrary strings to view their L2-normalized frequency arrays and compute similarity scores between custom grid scenarios. This visualizes exactly how close two concepts (e.g. *trafo overload* vs *overheating charger*) lie within the coordinate vector space.

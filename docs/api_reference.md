@@ -36,11 +36,73 @@ Submits a query to the AI Copilot Chatbot. It executes a local SQLite vector sim
     ```json
     {
       "reply": "Trafo 301 için aşırı yükleme protokolü, aktif yükün 500kW'ı aşması durumunda...",
-      "engine": "Gemini 2.5 Flash (Cloud RAG)"
+      "engine": "Gemini 2.5 Flash (Cloud RAG)",
+      "rag_details": {
+        "query": "Trafo 301 aşırı yükleme protokolü nedir?",
+        "query_vector": [0.0, 0.577, 0.577, ...],
+        "retrieved_rules": [
+          {
+            "title": "Rule 101: Transformer Overload Protocol",
+            "content": "If a Transformer (such as TRAFO_301 or TRAFO_302) experiences a critical overload...",
+            "score": 86.6
+          }
+        ],
+        "active_anomalies": [],
+        "system_prompt": "You are GridPulse.AI..."
+      }
     }
     ```
 
-### 3. POST `/api/control/cooling`
+### 3. GET `/api/status`
+Checks and returns the connection status of all critical services (ClickHouse, Redpanda, SQLite DB, Gemini).
+*   **Request:** `GET http://localhost:8000/api/status`
+*   **Response Body:**
+    ```json
+    {
+      "sqlite_rag": "ONLINE",
+      "clickhouse": "ONLINE",
+      "redpanda": "ONLINE",
+      "gemini": "ONLINE"
+    }
+    ```
+
+### 4. POST `/api/vectorize`
+Converts a query string into a 32-dimensional normalized frequency embedding vector.
+*   **Request:** `POST http://localhost:8000/api/vectorize`
+*   **Request Body:**
+    ```json
+    {
+      "text": "trafo"
+    }
+    ```
+*   **Response Body:**
+    ```json
+    {
+      "text": "trafo",
+      "vector": [0.0, 0.0, 1.0, 0.0, ...]
+    }
+    ```
+
+### 5. POST `/api/vector_compare`
+Vectorizes two sentences and calculates their Cosine Similarity score.
+*   **Request:** `POST http://localhost:8000/api/vector_compare`
+*   **Request Body:**
+    ```json
+    {
+      "text_a": "trafo 301 kritik sıcaklık",
+      "text_b": "trafo sıcaklık uyarısı"
+    }
+    ```
+*   **Response Body:**
+    ```json
+    {
+      "text_a": "trafo 301 kritik sıcaklık",
+      "text_b": "trafo sıcaklık uyarısı",
+      "similarity": 86.6
+    }
+    ```
+
+### 6. POST `/api/control/cooling`
 Triggers the remote SCADA override to activate coolant valves in a substation.
 *   **Request:** `POST http://localhost:8000/api/control/cooling`
 *   **Request Body:**

@@ -62,10 +62,12 @@ graph TD
 ## ⚛️ 3. Web SCADA Presentation Layer
 
 *   **FastAPI backend server (`src/api.py`):**
-    Exposes REST endpoints for manual anomaly injection, historical query execution, remote control overrides (Cooling activation, Phase balancer), and the `/api/copilot` LLM chatbot.
+    Exposes REST/POST endpoints for manual anomaly injection, historical query execution, remote control overrides (Cooling activation, Phase balancer), `/api/vectorize` metadatas, `/api/vector_compare` similarities, and the `/api/copilot` LLM chatbot.
 *   **Vite/React UI (`frontend/src/App.jsx`):**
     A dynamic dark-mode SCADA console containing:
-    1.  Interactive geographical cable stress map.
-    2.  Explainable AI (XAI SHAP) feature charts showing why an anomaly was triggered.
-    3.  A dedicated "Lokal SQLite RAG Vektör Bilgi Bankası" panel listing active operating rules.
-    4.  An AI Chatbot Popover equipped with Quick RAG Query buttons for direct testing.
+    1.  **🧠 Yapay Zeka Beyni (AI Brain Control Room) Tab:** A full-screen operations workspace displaying a large chat terminal side-by-side with active system variables (ClickHouse logs, SQLite rules count, weather scales) that the AI reads in real-time.
+    2.  **🔍 RAG Akış Analizi (RAG Execution Path Inspector) Modal:** A step-by-step diagnostic modal that visualizes the query vector, SQLite cosine similarity matches, ClickHouse anomalies context, and the raw system prompt payload.
+    3.  **🧪 Vektör & Kosinüs Matematik Simülatörü (Vector Cosine Math Lab):** A playground allowing operators to vectorize arbitrary words and compare sentences using Cosine Similarity metrics.
+    4.  **🟢 Glowing Service Health LEDs:** A status checker panel in the topbar polling the server status endpoint to confirm database connectivity.
+    5.  **🗺️ Interactive Geographical Map:** Visualizes cables dynamically colored by thermal stress.
+    6.  **📈 SHAP Feature Importance Bars:** Explainable AI charts explaining the neural model classification.
