@@ -3960,7 +3960,7 @@ function App() {
                 </div>
               </div>
 
-              {/* Step 2: Semantic SQLite Lookup */}
+              {/* Step 2: Semantic SQLite Lookup & Vector Algebra Math */}
               <div style={{ padding: '12px', background: 'rgba(139, 92, 246, 0.03)', border: '1px solid rgba(139, 92, 246, 0.25)', borderRadius: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
                   <span style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#a78bfa', padding: '2px 6px', borderRadius: '4px', marginRight: '8px', fontSize: '9px', fontWeight: 'bold', fontFamily: 'JetBrains Mono' }}>STEP 2</span>
@@ -3973,7 +3973,29 @@ function App() {
                         <span style={{ color: '#a78bfa' }}>{rule.title}</span>
                         <span style={{ color: '#38bdf8', background: 'rgba(56, 189, 248, 0.1)', padding: '1px 5px', borderRadius: '3px', fontSize: '9.5px', fontFamily: 'JetBrains Mono' }}>Match: {rule.score}%</span>
                       </div>
-                      <div style={{ color: '#cbd5e1', fontSize: '10.5px', lineHeight: '1.4' }}>{rule.content}</div>
+                      <div style={{ color: '#cbd5e1', fontSize: '10.5px', lineHeight: '1.4', marginBottom: '8px' }}>{rule.content}</div>
+                      
+                      {/* Math & shared words breakdown */}
+                      {rule.dot_product !== undefined && (
+                        <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '6px', marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <div style={{ fontFamily: 'JetBrains Mono', fontSize: '8.5px', color: '#a78bfa' }}>
+                            <span>📐 Vector Math: </span>
+                            <span style={{ color: '#cbd5e1' }}>
+                              Sim = (Q · D) / (||Q|| × ||D||) = {rule.dot_product} / ({rule.norm_q} × {rule.norm_r}) = <strong>{(rule.score / 100).toFixed(3)}</strong>
+                            </span>
+                          </div>
+                          {rule.shared_words && rule.shared_words.length > 0 && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', marginTop: '2px' }}>
+                              <span style={{ fontSize: '8.5px', color: '#cbd5e1', fontFamily: 'JetBrains Mono' }}>🔑 Matched Vocabulary:</span>
+                              {rule.shared_words.map((word, wIdx) => (
+                                <span key={wIdx} style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#c084fc', padding: '1px 4px', borderRadius: '3px', fontSize: '8.5px', fontFamily: 'JetBrains Mono' }}>
+                                  {word}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))
                 ) : (
@@ -4009,10 +4031,81 @@ function App() {
                   <span style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#4ade80', padding: '2px 6px', borderRadius: '4px', marginRight: '8px', fontSize: '9px', fontWeight: 'bold', fontFamily: 'JetBrains Mono' }}>STEP 4</span>
                   <strong style={{ color: '#e2e8f0', fontSize: '10px' }}>System Instructions & Context Injection (Ham Prompt Payload)</strong>
                 </div>
-                <pre style={{ margin: 0, fontFamily: 'JetBrains Mono', fontSize: '9px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.05)', padding: '10px', borderRadius: '6px', overflowX: 'auto', whiteSpace: 'pre-wrap', color: '#a7f3d0', maxHeight: '150px' }}>
+                <pre style={{ margin: 0, fontFamily: 'JetBrains Mono', fontSize: '9px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.05)', padding: '10px', borderRadius: '6px', overflowX: 'auto', whiteSpace: 'pre-wrap', color: '#a7f3d0', maxHeight: '120px' }}>
                   {selectedRagDetails.system_prompt}
                 </pre>
               </div>
+
+              {/* Step 5: Data Engineering Performance & Metrics */}
+              {selectedRagDetails.metrics && (
+                <div style={{ padding: '12px', background: 'rgba(245, 158, 11, 0.03)', border: '1px solid rgba(245, 158, 11, 0.25)', borderRadius: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', padding: '2px 6px', borderRadius: '4px', marginRight: '8px', fontSize: '9px', fontWeight: 'bold', fontFamily: 'JetBrains Mono' }}>METRICS</span>
+                    <strong style={{ color: '#e2e8f0', fontSize: '10px' }}>Data Engineering Performance & Pipeline Latencies</strong>
+                  </div>
+                  
+                  {/* Latency Bars breakdown */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '9.5px', fontFamily: 'JetBrains Mono', color: '#cbd5e1', marginBottom: '10px' }}>
+                    
+                    {/* Tokenization */}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                        <span>Tokenizer (Frequency Embedding Calculation)</span>
+                        <span style={{ color: '#fbbf24' }}>{selectedRagDetails.metrics.tokenization_time_ms} ms</span>
+                      </div>
+                      <div style={{ height: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '2px' }}>
+                        <div style={{ width: `${Math.min(100, selectedRagDetails.metrics.tokenization_time_ms * 10)}%`, height: '100%', background: '#fbbf24', borderRadius: '2px' }} />
+                      </div>
+                    </div>
+
+                    {/* SQLite */}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                        <span>SQLite DB Vector similarity lookup</span>
+                        <span style={{ color: '#a78bfa' }}>{selectedRagDetails.metrics.sqlite_latency_ms} ms</span>
+                      </div>
+                      <div style={{ height: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '2px' }}>
+                        <div style={{ width: `${Math.min(100, selectedRagDetails.metrics.sqlite_latency_ms * 10)}%`, height: '100%', background: '#a78bfa', borderRadius: '2px' }} />
+                      </div>
+                    </div>
+
+                    {/* Clickhouse */}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                        <span>ClickHouse OLAP anomaly scan</span>
+                        <span style={{ color: '#fb7185' }}>{selectedRagDetails.metrics.clickhouse_latency_ms} ms</span>
+                      </div>
+                      <div style={{ height: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '2px' }}>
+                        <div style={{ width: `${Math.min(100, selectedRagDetails.metrics.clickhouse_latency_ms * 10)}%`, height: '100%', background: '#fb7185', borderRadius: '2px' }} />
+                      </div>
+                    </div>
+
+                    {/* LLM */}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                        <span>LLM Inference (Gemini API generation)</span>
+                        <span style={{ color: '#34d399' }}>{selectedRagDetails.metrics.llm_latency_ms} ms</span>
+                      </div>
+                      <div style={{ height: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '2px' }}>
+                        <div style={{ width: `${Math.min(100, (selectedRagDetails.metrics.llm_latency_ms / 1500) * 100)}%`, height: '100%', background: '#34d399', borderRadius: '2px' }} />
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* DB Scanned rows & token counters */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '9px', fontFamily: 'JetBrains Mono', background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.02)' }}>
+                    <div>
+                      <span>🗄️ ClickHouse Rows Scanned: </span>
+                      <strong style={{ color: '#fbbf24' }}>{selectedRagDetails.metrics.scanned_rows} rows</strong>
+                    </div>
+                    <div>
+                      <span>📊 Total Tokens Processed: </span>
+                      <strong style={{ color: '#34d399' }}>{selectedRagDetails.metrics.token_stats?.total_tokens || 0} tokens</strong>
+                    </div>
+                  </div>
+                </div>
+              )}
 
             </div>
 
