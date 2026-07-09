@@ -3907,105 +3907,131 @@ function App() {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.4)',
-          backdropFilter: 'blur(4px)',
+          backgroundColor: 'rgba(8, 12, 24, 0.85)',
+          backdropFilter: 'blur(8px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 1000
+          zIndex: 1100
         }}>
           <div className="panel" style={{
-            width: '650px',
-            background: 'var(--bg-panel)',
-            border: '1px solid var(--cyan)',
+            width: '680px',
+            background: 'linear-gradient(135deg, rgba(20, 27, 45, 0.98) 0%, rgba(10, 15, 28, 0.98) 100%)',
+            border: '1px solid rgba(56, 189, 248, 0.4)',
             borderRadius: '12px',
             padding: '24px',
-            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.25)',
+            boxShadow: '0 0 25px rgba(56, 189, 248, 0.25), 0 20px 25px -5px rgba(0,0,0,0.7)',
             display: 'flex',
             flexDirection: 'column',
             gap: '16px',
-            textAlign: 'left'
+            textAlign: 'left',
+            color: '#f1f5f9'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
-              <h3 style={{ margin: 0, fontSize: '13px', textTransform: 'uppercase', color: 'var(--cyan)', letterSpacing: '1px', fontWeight: 'bold' }}>
-                🧠 RAG Execution Path Inspector (Denetim Raporu)
-              </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '18px' }}>🧠</span>
+                <h3 style={{ margin: 0, fontSize: '13px', textTransform: 'uppercase', color: '#38bdf8', letterSpacing: '1px', fontWeight: 'bold' }}>
+                  RAG Execution Path Inspector (Denetim Raporu)
+                </h3>
+              </div>
               <button 
                 onClick={() => setSelectedRagDetails(null)}
-                style={{ background: 'none', border: 'none', fontSize: '20px', color: 'var(--text-muted)', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', fontSize: '20px', color: '#94a3b8', cursor: 'pointer', transition: 'color 0.2s' }}
+                onMouseOver={(e) => e.target.style.color = '#f1f5f9'}
+                onMouseOut={(e) => e.target.style.color = '#94a3b8'}
               >
                 &times;
               </button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', overflowY: 'auto', maxHeight: '420px', fontSize: '11px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', overflowY: 'auto', maxHeight: '420px', fontSize: '11px', paddingRight: '4px' }}>
               
               {/* Step 1: User Query & Vectorization */}
-              <div style={{ padding: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
-                <div style={{ fontWeight: 'bold', color: 'var(--cyan)', marginBottom: '5px', fontSize: '10px' }}>STEP 1: User Query & Vectorization (32-D Embedding Array)</div>
-                <div style={{ color: 'var(--text-main)', marginBottom: '6px' }}>"Query: {selectedRagDetails.query}"</div>
-                <div style={{ fontFamily: 'JetBrains Mono', fontSize: '9.5px', background: 'rgba(0,0,0,0.2)', padding: '6px', borderRadius: '4px', wordBreak: 'break-all', color: 'var(--text-muted)' }}>
+              <div style={{ padding: '12px', background: 'rgba(56, 189, 248, 0.03)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', padding: '2px 6px', borderRadius: '4px', marginRight: '8px', fontSize: '9px', fontWeight: 'bold', fontFamily: 'JetBrains Mono' }}>STEP 1</span>
+                  <strong style={{ color: '#e2e8f0', fontSize: '10px' }}>User Query & Vectorization (32-D Embedding Array)</strong>
+                </div>
+                <div style={{ color: '#f8fafc', marginBottom: '8px', fontSize: '11.5px', background: 'rgba(0,0,0,0.2)', padding: '6px 10px', borderRadius: '4px', borderLeft: '3px solid #38bdf8' }}>
+                  "Query: {selectedRagDetails.query}"
+                </div>
+                <div style={{ fontFamily: 'JetBrains Mono', fontSize: '9.5px', background: 'rgba(15, 23, 42, 0.8)', padding: '8px', borderRadius: '4px', wordBreak: 'break-all', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.05)' }}>
                   [{selectedRagDetails.query_vector ? selectedRagDetails.query_vector.slice(0, 10).map(v => v.toFixed(4)).join(', ') + ' ... ' + selectedRagDetails.query_vector.slice(-5).map(v => v.toFixed(4)).join(', ') : '0.0000'}]
                 </div>
               </div>
 
               {/* Step 2: Semantic SQLite Lookup */}
-              <div style={{ padding: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
-                <div style={{ fontWeight: 'bold', color: 'var(--cyan)', marginBottom: '5px', fontSize: '10px' }}>STEP 2: Semantic Knowledge Retrieval (SQLite Cosine Similarity)</div>
+              <div style={{ padding: '12px', background: 'rgba(139, 92, 246, 0.03)', border: '1px solid rgba(139, 92, 246, 0.25)', borderRadius: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#a78bfa', padding: '2px 6px', borderRadius: '4px', marginRight: '8px', fontSize: '9px', fontWeight: 'bold', fontFamily: 'JetBrains Mono' }}>STEP 2</span>
+                  <strong style={{ color: '#e2e8f0', fontSize: '10px' }}>Semantic Knowledge Retrieval (SQLite Cosine Similarity)</strong>
+                </div>
                 {selectedRagDetails.retrieved_rules && selectedRagDetails.retrieved_rules.length > 0 ? (
                   selectedRagDetails.retrieved_rules.map((rule, idx) => (
-                    <div key={idx} style={{ marginTop: '6px', borderBottom: idx < selectedRagDetails.retrieved_rules.length - 1 ? '1px dashed var(--border-color)' : 'none', paddingBottom: '6px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
-                        <span>{rule.title}</span>
-                        <span style={{ color: 'var(--cyan)' }}>Match Score: {rule.score}%</span>
+                    <div key={idx} style={{ marginTop: '8px', background: 'rgba(0,0,0,0.15)', border: '1px solid rgba(255,255,255,0.03)', borderRadius: '6px', padding: '8px 12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', marginBottom: '4px' }}>
+                        <span style={{ color: '#a78bfa' }}>{rule.title}</span>
+                        <span style={{ color: '#38bdf8', background: 'rgba(56, 189, 248, 0.1)', padding: '1px 5px', borderRadius: '3px', fontSize: '9.5px', fontFamily: 'JetBrains Mono' }}>Match: {rule.score}%</span>
                       </div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '10px', marginTop: '2px' }}>{rule.content}</div>
+                      <div style={{ color: '#cbd5e1', fontSize: '10.5px', lineHeight: '1.4' }}>{rule.content}</div>
                     </div>
                   ))
                 ) : (
-                  <div style={{ color: 'var(--red)', fontStyle: 'italic' }}>No matching rules retrieved from SQLite.</div>
+                  <div style={{ color: '#f43f5e', fontStyle: 'italic', padding: '4px' }}>No matching rules retrieved from SQLite.</div>
                 )}
               </div>
 
               {/* Step 3: ClickHouse Ingestion */}
-              <div style={{ padding: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
-                <div style={{ fontWeight: 'bold', color: 'var(--cyan)', marginBottom: '5px', fontSize: '10px' }}>STEP 3: Live Substation Telemetry Context (ClickHouse)</div>
+              <div style={{ padding: '12px', background: 'rgba(244, 63, 94, 0.03)', border: '1px solid rgba(244, 63, 94, 0.25)', borderRadius: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ background: 'rgba(244, 63, 94, 0.15)', color: '#fb7185', padding: '2px 6px', borderRadius: '4px', marginRight: '8px', fontSize: '9px', fontWeight: 'bold', fontFamily: 'JetBrains Mono' }}>STEP 3</span>
+                  <strong style={{ color: '#e2e8f0', fontSize: '10px' }}>Live Substation Telemetry Context (ClickHouse)</strong>
+                </div>
                 {selectedRagDetails.active_anomalies && selectedRagDetails.active_anomalies.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginTop: '6px' }}>
                     {selectedRagDetails.active_anomalies.map((anom, idx) => (
-                      <div key={idx} style={{ padding: '4px', background: 'rgba(239, 68, 68, 0.02)', borderRadius: '4px' }}>
-                        🚨 Device <span style={{ color: 'var(--cyan)', fontWeight: 'bold' }}>{anom.device}</span> ({anom.city}) - Status: <span style={{ color: 'var(--red)' }}>{anom.reason}</span> (Stability Score: {anom.stability_score}%)
+                      <div key={idx} style={{ padding: '6px 10px', background: 'rgba(244, 63, 94, 0.08)', border: '1px solid rgba(244, 63, 94, 0.15)', borderRadius: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>🚨 Device <span style={{ color: '#fb7185', fontWeight: 'bold' }}>{anom.device}</span> ({anom.city})</span>
+                        <span style={{ fontFamily: 'JetBrains Mono' }}>Status: <strong style={{ color: '#f43f5e' }}>{anom.reason}</strong> (Stability: {anom.stability_score}%)</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div style={{ color: 'var(--green)', fontStyle: 'italic' }}>All systems stable, no active telemetry anomalies retrieved from ClickHouse.</div>
+                  <div style={{ color: '#34d399', fontStyle: 'italic', padding: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <span>✓</span> All systems stable, no active telemetry anomalies retrieved from ClickHouse.
+                  </div>
                 )}
               </div>
 
               {/* Step 4: System Prompt Compilation */}
-              <div style={{ padding: '10px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
-                <div style={{ fontWeight: 'bold', color: 'var(--cyan)', marginBottom: '5px', fontSize: '10px' }}>STEP 4: System Instructions & Context Injection (Ham Prompt Payload)</div>
-                <pre style={{ margin: 0, fontFamily: 'JetBrains Mono', fontSize: '9px', background: 'rgba(0,0,0,0.2)', padding: '6px', borderRadius: '4px', overflowX: 'auto', whiteSpace: 'pre-wrap', color: 'var(--text-muted)' }}>
+              <div style={{ padding: '12px', background: 'rgba(34, 197, 94, 0.03)', border: '1px solid rgba(34, 197, 94, 0.25)', borderRadius: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#4ade80', padding: '2px 6px', borderRadius: '4px', marginRight: '8px', fontSize: '9px', fontWeight: 'bold', fontFamily: 'JetBrains Mono' }}>STEP 4</span>
+                  <strong style={{ color: '#e2e8f0', fontSize: '10px' }}>System Instructions & Context Injection (Ham Prompt Payload)</strong>
+                </div>
+                <pre style={{ margin: 0, fontFamily: 'JetBrains Mono', fontSize: '9px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.05)', padding: '10px', borderRadius: '6px', overflowX: 'auto', whiteSpace: 'pre-wrap', color: '#a7f3d0', maxHeight: '150px' }}>
                   {selectedRagDetails.system_prompt}
                 </pre>
               </div>
 
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '15px' }}>
               <button 
                 onClick={() => setSelectedRagDetails(null)}
                 style={{
-                  background: 'var(--cyan)',
-                  color: '#fff',
+                  background: '#38bdf8',
+                  color: '#0f172a',
                   border: 'none',
-                  borderRadius: '4px',
-                  padding: '8px 20px',
+                  borderRadius: '6px',
+                  padding: '8px 24px',
                   cursor: 'pointer',
                   fontSize: '11px',
-                  fontWeight: 'bold'
+                  fontWeight: 'bold',
+                  transition: 'background 0.2s'
                 }}
+                onMouseOver={(e) => e.target.style.background = '#0ea5e9'}
+                onMouseOut={(e) => e.target.style.background = '#38bdf8'}
               >
                 {lang === 'TR' ? 'Analizi Kapat' : 'Close Analysis'}
               </button>
