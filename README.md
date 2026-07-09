@@ -141,18 +141,12 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 Explore the comprehensive technical guides and manuals detailing the GridPulseAI architecture and AI models:
 
-*   **🏗️ [System Architecture & Data Pipelines](docs/system_architecture.md):** 
-    *   *Açıklama / Description:* Projenin gerçek zamanlı veri akış mimarisini açıklar. Bytewax stream işlemcisi, Redpanda (Kafka) mesaj kuyrukları ve ClickHouse OLAP veritabanının entegrasyon şemalarını içerir.
-*   **🧠 [AI Copilot & Prompt Engineering Guide](docs/prompt_engineering_guide.md):** 
-    *   *Açıklama / Description:* RAG asistanının rol tanımlarını ve güvenlik bariyerlerini içerir. Yapay zekaya verilen sistem kuralları, anti-halüsinasyon sınırları ve operasyonel SCADA komut şablonlarını detaylandırır.
-*   **🔍 [SQLite Offline Vector Search](docs/sqlite_vector_search.md):** 
-    *   *Açıklama / Description:* Çevrimdışı vektör arama motorunun matematiksel altyapısını belgeler. Metinlerin kelime frekans vektörlerine dönüştürülmesini ve Cosine Similarity (Kosinüs Benzerliği) formülüyle kurallarla eşleştirilmesini gösterir.
-*   **📈 [ML Anomaly Detection & SHAP Explanations](docs/anomaly_detection_shap.md):** 
-    *   *Açıklama / Description:* Makine öğrenimi tabanlı arıza tespit modelini açıklar. XGBoost modelinin öznitelik ağırlıklarını ve SHAP değerleri kullanarak üretilen açıklanabilir yapay zeka (XAI) tanı çıktılarını belgeler.
-*   **🛠️ [Installation & Troubleshooting Guide](docs/installation_and_troubleshooting.md):** 
-    *   *Açıklama / Description:* Projenin sıfırdan kurulum ve devreye alma adımlarını özetler. Python sanal ortamı, Node.js bağımlılıkları ve Docker port çakışması gibi yaygın hataların çözümlerini listeler.
-*   **🔌 [API Reference Manual](docs/api_reference.md):** 
-    *   *Açıklama / Description:* FastAPI backend servislerinin teknik dokümantasyonudur. RAG sohbet `/api/copilot` girdileri, dynamic `/api/rules` çıktıları ve uzaktan kumanda API çağrılarını listeler.
+*   **🏗️ [System Architecture & Data Pipelines](docs/system_architecture.md):** Detailed overview of the real-time grid stream processing architecture, detailing Redpanda, Bytewax, ClickHouse, and React UI data pipelines.
+*   **🧠 [AI Copilot & Prompt Engineering Guide](docs/prompt_engineering_guide.md):** Technical specifications of prompt role definitions, anti-hallucination guardrails, and structural system instruction formats.
+*   **🔍 [SQLite Offline Vector Search](docs/sqlite_vector_search.md):** Documentation of the offline vector search mathematical backend, covering vocabulary-based frequency embeddings and Cosine Similarity matching algorithms.
+*   **📈 [ML Anomaly Detection & SHAP Explanations](docs/anomaly_detection_shap.md):** Detailed guide on the machine learning pipeline, documenting XGBoost feature engineering and real-time Explainable AI (XAI) feature weights.
+*   **🛠️ [Installation & Troubleshooting Guide](docs/installation_and_troubleshooting.md):** Step-by-step setup walkthrough, detailing python environments, Node.js packages, and Docker port conflict resolution procedures.
+*   **🔌 [API Reference Manual](docs/api_reference.md):** Complete specifications of REST API endpoints, SSE streams, JSON payloads, and RAG copilot integration flows.
 
 ---
 
