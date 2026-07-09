@@ -237,6 +237,27 @@ function App() {
   const [mitigationLoading, setMitigationLoading] = useState(false);
   const [anomaliesRightTab, setAnomaliesRightTab] = useState('chart');
   const [dbRules, setDbRules] = useState([]);
+  const [systemStatus, setSystemStatus] = useState({
+    clickhouse: 'OFFLINE',
+    redpanda: 'OFFLINE',
+    sqlite_rag: 'OFFLINE',
+    gemini: 'OFFLINE'
+  });
+  const [vectorSearchQuery, setVectorSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+
+  const handleVectorSearch = async () => {
+    if (!vectorSearchQuery.trim()) return;
+    try {
+      const res = await fetch(`http://localhost:8000/api/search?query=${encodeURIComponent(vectorSearchQuery)}`);
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setSearchResults(data);
+      }
+    } catch (e) {
+      console.error("Semantic search failed", e);
+    }
+  };
 
   useEffect(() => {
     const fetchRules = async () => {
@@ -251,6 +272,23 @@ function App() {
       }
     };
     fetchRules();
+  }, []);
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/status');
+        const data = await res.json();
+        if (data && data.sqlite_rag) {
+          setSystemStatus(data);
+        }
+      } catch (e) {
+        console.error("Failed to fetch system service status", e);
+      }
+    };
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -856,10 +894,30 @@ function App() {
         
         {/* Topbar */}
         <header className="topbar">
-          <div className="topbar-title">
+          <div className="topbar-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="text-cyan font-bold">GRIDPULSE.AI</span>
-            <span className="text-gray-400 mx-2">-</span>
-            <span className="text-gray-300">{lang === 'TR' ? 'ENERJİ ŞEBEKESİ İZLEME' : 'REAL-TIME IOT GRID MONITOR'}</span>
+            <span className="text-gray-400 mx-1">-</span>
+            <span className="text-gray-300" style={{ fontSize: '11px' }}>{lang === 'TR' ? 'ENERJİ ŞEBEKESİ İZLEME' : 'REAL-TIME IOT GRID MONITOR'}</span>
+            
+            {/* Canlı Servis Sağlık Durum LED'leri */}
+            <div style={{ display: 'flex', gap: '6px', marginLeft: '15px', alignItems: 'center', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', padding: '2px 8px', borderRadius: '20px', fontSize: '9px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: systemStatus.clickhouse === 'ONLINE' ? '#16a34a' : '#dc2626', boxShadow: systemStatus.clickhouse === 'ONLINE' ? '0 0 4px #16a34a' : '0 0 4px #dc2626', display: 'inline-block' }}></span>
+                <span style={{ color: 'var(--text-muted)' }}>CH</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: systemStatus.redpanda === 'ONLINE' ? '#16a34a' : '#dc2626', boxShadow: systemStatus.redpanda === 'ONLINE' ? '0 0 4px #16a34a' : '0 0 4px #dc2626', display: 'inline-block' }}></span>
+                <span style={{ color: 'var(--text-muted)' }}>RP</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: systemStatus.sqlite_rag === 'ONLINE' ? '#16a34a' : '#dc2626', boxShadow: systemStatus.sqlite_rag === 'ONLINE' ? '0 0 4px #16a34a' : '0 0 4px #dc2626', display: 'inline-block' }}></span>
+                <span style={{ color: 'var(--text-muted)' }}>RAG</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: systemStatus.gemini === 'ONLINE' ? '#16a34a' : '#dc2626', boxShadow: systemStatus.gemini === 'ONLINE' ? '0 0 4px #16a34a' : '0 0 4px #dc2626', display: 'inline-block' }}></span>
+                <span style={{ color: 'var(--text-muted)' }}>GEMINI</span>
+              </div>
+            </div>
           </div>
           <div className="topbar-actions">
             <select 
@@ -3136,8 +3194,80 @@ function App() {
                   </span>
                 </div>
 
+                {/* Canlı Semantik Vektör Arama Çubuğu */}
+                <div style={{ marginBottom: '15px', display: 'flex', gap: '8px' }}>
+                  <input 
+                    type="text"
+                    value={vectorSearchQuery}
+                    onChange={(e) => setVectorSearchQuery(e.target.value)}
+                    placeholder={lang === 'TR' ? "Kosinüs benzerliği ile kurallarda semantik arama yapın... (Örn: 'voltaj', 'overload')" : "Perform semantic vector search using Cosine Similarity... (e.g. 'voltage', 'overload')"}
+                    style={{ 
+                      flex: 1, 
+                      padding: '6px 12px', 
+                      fontSize: '11px', 
+                      background: 'rgba(255,255,255,0.02)', 
+                      border: '1px solid var(--border-color)', 
+                      borderRadius: '6px', 
+                      color: 'var(--text-main)' 
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleVectorSearch();
+                    }}
+                  />
+                  <button 
+                    type="button"
+                    onClick={handleVectorSearch}
+                    style={{ 
+                      background: 'var(--cyan)', 
+                      color: '#fff', 
+                      border: 'none', 
+                      borderRadius: '6px', 
+                      padding: '6px 15px', 
+                      fontSize: '11px', 
+                      fontWeight: 'bold', 
+                      cursor: 'pointer' 
+                    }}
+                  >
+                    🔍 {lang === 'TR' ? 'Semantik Ara' : 'Vector Search'}
+                  </button>
+                  {(vectorSearchQuery || searchResults.length > 0) && (
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setVectorSearchQuery('');
+                        setSearchResults([]);
+                      }}
+                      style={{ 
+                        background: 'rgba(255,255,255,0.05)', 
+                        color: 'var(--text-main)', 
+                        border: '1px solid var(--border-color)', 
+                        borderRadius: '6px', 
+                        padding: '6px 12px', 
+                        fontSize: '11px', 
+                        cursor: 'pointer' 
+                      }}
+                    >
+                      {lang === 'TR' ? 'Temizle' : 'Reset'}
+                    </button>
+                  )}
+                </div>
+
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '15px' }}>
-                  {dbRules.length > 0 ? (
+                  {searchResults.length > 0 ? (
+                    searchResults.map((rule) => (
+                      <div key={rule.id} style={{ padding: '12px', background: 'rgba(2, 132, 199, 0.02)', border: '1px solid var(--cyan)', borderRadius: '6px', position: 'relative' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                          <h4 style={{ margin: 0, fontSize: '11px', color: 'var(--cyan)' }}>{rule.title}</h4>
+                          <span style={{ fontSize: '9px', background: 'rgba(2, 132, 199, 0.1)', color: 'var(--cyan)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                            Match: {rule.score}%
+                          </span>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                          {rule.content}
+                        </p>
+                      </div>
+                    ))
+                  ) : dbRules.length > 0 ? (
                     dbRules.map((rule) => (
                       <div key={rule.id} style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
                         <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', color: 'var(--cyan)' }}>{rule.title}</h4>

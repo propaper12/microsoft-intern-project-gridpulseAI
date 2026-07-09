@@ -222,13 +222,88 @@ def get_rules():
             {"id": 104, "title": "Rule 104: Carbon Intensity & Green Routing", "content": "When UK Grid carbon intensity index is high, prioritize drawing power from renewable sources..."}
         ]
 
+@app.get("/api/search")
+def search_rules(query: str):
+    from src.vector_store import find_relevant_rules
+    try:
+        results = find_relevant_rules(query, top_k=5)
+        formatted = []
+        for r in results:
+            formatted.append({
+                "id": len(formatted) + 1,
+                "title": r["title"],
+                "content": r["content"],
+                "score": round(r["score"] * 100, 1)
+            })
+        return formatted
+    except Exception as e:
+        print("Failed to execute semantic rules search:", e)
+        return []
+
+@app.get("/api/status")
+def get_system_status():
+    import sqlite3
+    import os
+    
+    # 1. SQLite Status
+    sqlite_status = "OFFLINE"
+    try:
+        from src.vector_store import DB_PATH
+        if os.path.exists(DB_PATH):
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute("SELECT count(*) FROM documents")
+            count = c.fetchone()[0]
+            conn.close()
+            if count > 0:
+                sqlite_status = "ONLINE"
+    except Exception:
+        pass
+        
+    # 2. ClickHouse Status
+    clickhouse_status = "OFFLINE"
+    try:
+        import clickhouse_connect
+        client = clickhouse_connect.get_client(host='localhost', port=8123, username='default', password='')
+        client.ping()
+        clickhouse_status = "ONLINE"
+    except Exception:
+        pass
+        
+    # 3. Redpanda Status
+    redpanda_status = "OFFLINE"
+    try:
+        import socket
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(0.5)
+        s.connect(('localhost', 9092))
+        s.close()
+        redpanda_status = "ONLINE"
+    except Exception:
+        pass
+        
+    # 4. Gemini 2.5 Status
+    gemini_status = "OFFLINE"
+    if os.environ.get("GEMINI_API_KEY"):
+        gemini_status = "ONLINE"
+        
+    return {
+        "sqlite_rag": sqlite_status,
+        "clickhouse": clickhouse_status,
+        "redpanda": redpanda_status,
+        "gemini": gemini_status
+    }
+
 @app.post("/api/copilot")
 async def copilot_query(payload: dict):
     import urllib.request
     import json
+    import time
+    import os
     from src.vector_store import find_relevant_rules
     from src.prompt_builder import build_grid_copilot_prompt
     
+    start_time = time.time()
     user_query = payload.get("message", "")
     lang = payload.get("lang", "TR")
     
@@ -254,9 +329,12 @@ async def copilot_query(payload: dict):
     # 3. Build structured prompt using our new builder
     system_prompt = build_grid_copilot_prompt(user_query, active_anomalies_list, local_rules, lang)
     
+    reply = ""
+    engine = "GridPulse Local AI Model"
+    
     # --- TRY GOOGLE GEMINI 2.5 FLASH FIRST ---
     gemini_key = os.environ.get("GEMINI_API_KEY")
-    if gemini_key:
+    if gemini_key and not reply:
         try:
             gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
             gemini_headers = {"Content-Type": "application/json"}
@@ -269,67 +347,94 @@ async def copilot_query(payload: dict):
                 res_body = json.loads(response.read().decode("utf-8"))
                 candidates = res_body.get("candidates", [])
                 if candidates and len(candidates) > 0:
-                    reply = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
-                    if reply:
-                        return {"reply": reply, "engine": "Gemini 2.5 Flash (Cloud RAG)"}
+                    reply_cand = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+                    if reply_cand:
+                        reply = reply_cand
+                        engine = "Gemini 2.5 Flash (Cloud RAG)"
         except Exception as e:
             print("Gemini API Call failed. Falling back to HuggingFace.", e)
         
     # --- FALLBACK TO HUGGINGFACE ---
-    url = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
-    headers = {
-        "Content-Type": "application/json"
-    }
-    
-    body = {
-        "inputs": f"<|system|>\n{system_prompt}</s>\n<|user|>\n{user_query}</s>\n<|assistant|>\n",
-        "parameters": {"max_new_tokens": 150, "temperature": 0.3}
-    }
-    
-    try:
-        data = json.dumps(body).encode("utf-8")
-        req = urllib.request.Request(url, data=data, headers=headers, method="POST")
-        with urllib.request.urlopen(req, timeout=3) as response:
-            res_body = json.loads(response.read().decode("utf-8"))
-            if isinstance(res_body, list) and len(res_body) > 0:
-                full_text = res_body[0].get("generated_text", "")
-                if "<|assistant|>\n" in full_text:
-                    reply = full_text.split("<|assistant|>\n")[-1].strip()
-                else:
-                    reply = full_text.replace(body["inputs"], "").strip()
-                return {"reply": reply, "engine": "HuggingFace Zephyr-7B (Cloud RAG)"}
-    except Exception as e:
-        print("HF API Call failed or timed out. Falling back to local RAG.", e)
+    if not reply:
+        try:
+            url = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
+            headers = {
+                "Content-Type": "application/json"
+            }
+            body = {
+                "inputs": f"<|system|>\n{system_prompt}</s>\n<|user|>\n{user_query}</s>\n<|assistant|>\n",
+                "parameters": {"max_new_tokens": 150, "temperature": 0.3}
+            }
+            data = json.dumps(body).encode("utf-8")
+            req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+            with urllib.request.urlopen(req, timeout=3) as response:
+                res_body = json.loads(response.read().decode("utf-8"))
+                if isinstance(res_body, list) and len(res_body) > 0:
+                    full_text = res_body[0].get("generated_text", "")
+                    if "<|assistant|>\n" in full_text:
+                        reply_cand = full_text.split("<|assistant|>\n")[-1].strip()
+                    else:
+                        reply_cand = full_text.replace(body["inputs"], "").strip()
+                    if reply_cand:
+                        reply = reply_cand
+                        engine = "HuggingFace Zephyr-7B (Cloud RAG)"
+        except Exception as e:
+            print("HF API Call failed or timed out. Falling back to local RAG.", e)
         
-    # Fallback to local smart RAG response
-    active_anomalies = []
-    try:
-        client = get_clickhouse_client()
-        result = client.query("SELECT device, reason, city FROM bot_alerts WHERE truth_score < 50 ORDER BY timestamp DESC LIMIT 3")
-        active_anomalies = [{"device": r[0], "reason": r[1], "city": r[2]} for r in result.result_set]
-    except Exception:
-        pass
-        
-    reply = ""
-    lower = user_query.lower()
-    
-    # Check if there is an exact hit in our SQLite local rules database first!
-    if local_rules:
-        # Ground the reply on the SQLite vector result!
-        rule = local_rules[0]
-        reply = f"Lokal Bilgi Bankası (RAG) eşleşmesi: [{rule['title']}]. Kılavuz detayı: {rule['content']}" if lang == "TR" else f"Local RAG Knowledge Base match: [{rule['title']}]. Guideline: {rule['content']}"
-    elif "durum" in lower or "status" in lower or "kararlılık" in lower or "stability" in lower:
-        if active_anomalies:
-            reply = f"Şu an şebekede {len(active_anomalies)} adet kritik anomali tespit edildi. En kritik bölge: {active_anomalies[0]['city']}. Cihaz: {active_anomalies[0]['device']}. Sistem kararlılık indeksi tehlike sınırında." if lang == "TR" else f"Currently, {len(active_anomalies)} critical anomalies are active. Most impacted: {active_anomalies[0]['city']} on device {active_anomalies[0]['device']}."
+    # --- FALLBACK TO LOCAL REGEX HEURISTICS ---
+    if not reply:
+        active_anomalies = []
+        try:
+            client = get_clickhouse_client()
+            result = client.query("SELECT device, reason, city FROM bot_alerts WHERE truth_score < 50 ORDER BY timestamp DESC LIMIT 3")
+            active_anomalies = [{"device": r[0], "reason": r[1], "city": r[2]} for r in result.result_set]
+        except Exception:
+            pass
+            
+        lower = user_query.lower()
+        if local_rules:
+            rule = local_rules[0]
+            reply = f"Lokal Bilgi Bankası (RAG) eşleşmesi: [{rule['title']}]. Kılavuz detayı: {rule['content']}" if lang == "TR" else f"Local RAG Knowledge Base match: [{rule['title']}]. Guideline: {rule['content']}"
+        elif "durum" in lower or "status" in lower or "kararlılık" in lower or "stability" in lower:
+            if active_anomalies:
+                reply = f"Şu an şebekede {len(active_anomalies)} adet kritik anomali tespit edildi. En kritik bölge: {active_anomalies[0]['city']}. Cihaz: {active_anomalies[0]['device']}." if lang == "TR" else f"Currently, {len(active_anomalies)} critical anomalies are active. Most impacted: {active_anomalies[0]['city']} on device {active_anomalies[0]['device']}."
+            else:
+                reply = "Tüm telemetri akışları stabil görünüyor. Herhangi bir aktif limit aşımı veya voltaj kaybı kaydı bulunmuyor." if lang == "TR" else "All telemetry parameters are stable. No active alerts."
+        elif "ısınma" in lower or "overheating" in lower or "sıcaklık" in lower or "temp" in lower:
+            heating = [a for a in active_anomalies if "OVERHEATING" in a['reason']]
+            if heating:
+                reply = f"Aşırı ısınma gösteren {len(heating)} cihaz var. Gücü kısmayı veya isolasyon yapmayı öneriyorum." if lang == "TR" else f"Found {len(heating)} overheating devices. Load-shedding or isolation suggested."
+            else:
+                reply = "Şu an şebekede aşırı ısınma uyarısı bulunmuyor. Cihaz çalışma sıcaklıkları 25-35°C nominal aralığındadır." if lang == "TR" else "No active device temperature alerts. Baselines normal."
         else:
-            reply = "Tüm telemetri akışları stabil görünüyor. Herhangi bir aktif limit aşımı veya voltaj kaybı kaydı bulunmuyor." if lang == "TR" else "All telemetry parameters are stable. No active alerts."
-    elif "ısınma" in lower or "overheating" in lower or "sıcaklık" in lower or "temp" in lower:
-        heating = [a for a in active_anomalies if "OVERHEATING" in a['reason']]
-        if heating:
-            reply = f"Aşırı ısınma gösteren {len(heating)} cihaz var. Gücü kısmayı veya isolasyon yapmayı öneriyorum." if lang == "TR" else f"Found {len(heating)} overheating devices. Load-shedding or isolation suggested."
-        else:
-            reply = "Şu an şebekede aşırı ısınma uyarısı bulunmuyor. Cihaz çalışma sıcaklıkları 25-35°C nominal aralığındadır." if lang == "TR" else "No active device temperature alerts. Baselines normal."
-    else:
-        reply = "GridPulse AI (Yerel RAG Modeli): Şebeke telemetrilerinde ortalama gecikme 38ms, ClickHouse veri yazım hızı saniyede 24 satırdır. Yardımcı olmak için buradayım." if lang == "TR" else "GridPulse AI (Local RAG): Grid telemetry is stable, Avg latency is 38ms. Let me know how I can help."
+            reply = "GridPulse AI (Yerel RAG Modeli): Şebeke telemetrilerinde ortalama gecikme 38ms, ClickHouse veri yazım hızı saniyede 24 satırdır. Yardımcı olmak için buradayım." if lang == "TR" else "GridPulse AI (Local RAG): Grid telemetry is stable, Avg latency is 38ms. Let me know how I can help."
         
-    return {"reply": reply, "engine": "GridPulse Local AI Model"}
+        engine = "GridPulse Local AI Model"
+        
+    # Write Audit Trail Log
+    latency_ms = int((time.time() - start_time) * 1000)
+    log_entry = {
+        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "query": user_query,
+        "latency_ms": latency_ms,
+        "engine": engine,
+        "retrieved_rules": [r["title"] for r in local_rules]
+    }
+    try:
+        os.makedirs("logs", exist_ok=True)
+        log_file = "logs/rag_audit.json"
+        logs_list = []
+        if os.path.exists(log_file):
+            with open(log_file, "r", encoding="utf-8") as lf:
+                try:
+                    logs_list = json.load(lf)
+                except Exception:
+                    pass
+        logs_list.append(log_entry)
+        logs_list = logs_list[-100:]
+        with open(log_file, "w", encoding="utf-8") as lf:
+            json.dump(logs_list, lf, indent=2, ensure_ascii=False)
+    except Exception as le:
+        print("Failed to write RAG audit log:", le)
+        
+    return {"reply": reply, "engine": engine}

@@ -40,3 +40,6 @@ Thumbs.db
 
 # API Keys & Local Configuration
 .env
+
+# Local Logs & Audit Trails
+logs/
