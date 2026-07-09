@@ -930,6 +930,10 @@ function App() {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
             <span>{TRANSLATIONS[lang].tab_ml}</span>
           </a>
+          <a href="#" className={`nav-item ${activeTab === 'ai_brain' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveTab('ai_brain'); }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <span style={{ fontWeight: 'bold', color: 'var(--cyan)' }}>🧠 {lang === 'TR' ? 'Yapay Zeka Beyni' : 'AI Brain Control'}</span>
+          </a>
         </nav>
 
       </aside>
@@ -3446,6 +3450,190 @@ function App() {
                   </div>
                 </div>
 
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'ai_brain' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div className="content-header">
+                <h2>🤖 Yapay Zeka Beyni & Karar Kontrol Merkezi (AI Control Room)</h2>
+                <div className="dropdown" style={{ background: systemStatus.gemini === 'ONLINE' ? 'var(--green)' : 'var(--orange)', color: '#fff', border: 'none', fontWeight: 'bold' }}>
+                  {systemStatus.gemini === 'ONLINE' ? 'Gemini 2.5 Active ✓' : 'Offline Fallback Active ⚠'}
+                </div>
+              </div>
+
+              <div className="main-grid" style={{ gridTemplateColumns: '1.2fr 0.8fr', gap: '20px' }}>
+                {/* Sol Sütun: Büyük Chat Ekranı */}
+                <div className="panel" style={{ height: '600px', display: 'flex', flexDirection: 'column', padding: '20px' }}>
+                  <div className="panel-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', marginBottom: '10px' }}>
+                    <h3 style={{ fontSize: '13px' }}>💬 GridPulse AI Terminal</h3>
+                  </div>
+                  
+                  {/* Chat history feed */}
+                  <div style={{ 
+                    flex: 1, 
+                    overflowY: 'auto', 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: '10px', 
+                    background: 'rgba(0,0,0,0.15)', 
+                    border: '1px solid var(--border-color)', 
+                    borderRadius: '6px', 
+                    padding: '15px', 
+                    marginBottom: '15px' 
+                  }}>
+                    {chatMessages.map((msg) => (
+                      <div 
+                        key={msg.id} 
+                        style={{ 
+                          alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+                          background: msg.sender === 'user' ? 'var(--cyan)' : 'var(--bg-panel)',
+                          color: 'var(--text-main)',
+                          border: msg.sender === 'user' ? 'none' : '1px solid var(--border-color)',
+                          padding: '10px 14px',
+                          borderRadius: '8px',
+                          maxWidth: '75%',
+                          fontSize: '12px',
+                          lineHeight: '1.5',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                          textAlign: 'left'
+                        }}
+                      >
+                        <span>{msg.textKey ? TRANSLATIONS[lang][msg.textKey] : msg.text}</span>
+                        {msg.sender === 'ai' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                            <span style={{ 
+                              fontSize: '9px', 
+                              color: 'var(--cyan)', 
+                              opacity: 0.8, 
+                              alignSelf: 'flex-start',
+                              fontFamily: 'JetBrains Mono, monospace',
+                              borderTop: '1px solid rgba(255,255,255,0.05)',
+                              paddingTop: '3px',
+                              marginTop: '3px',
+                              display: 'block',
+                              width: '100%'
+                            }}>
+                              ⚙️ {msg.engine || "Gemini 2.5 Flash"}
+                            </span>
+                            {msg.rag_details && (
+                              <button
+                                type="button"
+                                onClick={() => setSelectedRagDetails(msg.rag_details)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: 'var(--cyan)',
+                                  fontSize: '9px',
+                                  cursor: 'pointer',
+                                  padding: 0,
+                                  marginTop: '4px',
+                                  textAlign: 'left',
+                                  display: 'block',
+                                  fontWeight: 'bold',
+                                  textDecoration: 'underline'
+                                }}
+                              >
+                                🔍 {lang === 'TR' ? 'RAG Analiz Raporunu İncele (Inspect RAG)' : 'Inspect RAG Details'}
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Chat input form */}
+                  <form 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (!chatInput.trim()) return;
+                      handleChatSubmit(chatInput);
+                      setChatInput('');
+                    }} 
+                    style={{ display: 'flex', gap: '8px' }}
+                  >
+                    <input 
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      placeholder={lang === 'TR' ? "Şebekedeki arızaları analiz etmesini isteyin... (Örn: 'Trafo 301 durumu nedir?')" : "Ask AI to analyze anomalies... (e.g. 'What is the status of Trafo 301?')"}
+                      style={{ flex: 1, padding: '10px 14px', fontSize: '12px', background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-main)' }}
+                    />
+                    <button 
+                      type="submit"
+                      style={{ background: 'var(--cyan)', color: '#fff', border: 'none', borderRadius: '6px', padding: '10px 20px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}
+                    >
+                      {lang === 'TR' ? 'Sorgula' : 'Query'}
+                    </button>
+                  </form>
+                </div>
+
+                {/* Sağ Sütun: Yapay Zekanın "Okuduğu" Sistem Context'i */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  
+                  {/* Live Context Box */}
+                  <div className="panel" style={{ padding: '20px', textAlign: 'left' }}>
+                    <div className="panel-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', marginBottom: '12px' }}>
+                      <h3 style={{ fontSize: '12px', color: 'var(--cyan)', fontWeight: 'bold' }}>📡 ACTIVE AI SYSTEM OBSERVABILITY</h3>
+                    </div>
+                    <p style={{ fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: '1.4', marginBottom: '12px' }}>
+                      {lang === 'TR' ? 'Yapay zeka asistanı, ClickHouse ve SQLite veri tabanlarından aşağıdaki canlı şebeke durumunu otomatik olarak okumakta ve sorguları bu bağlamda değerlendirmektedir:' : 'The AI automatically observes the following telemetry variables from ClickHouse and SQLite to formulate responses:'}
+                    </p>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11px' }}>
+                      <div style={{ padding: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>ClickHouse Anomalies Count:</span>
+                        <strong style={{ color: alerts.length > 0 ? 'var(--red)' : 'var(--green)' }}>{alerts.length} Active</strong>
+                      </div>
+                      <div style={{ padding: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Knowledge Base Rules (SQLite):</span>
+                        <strong style={{ color: 'var(--cyan)' }}>{dbRules.length > 0 ? dbRules.length : 10} Rules Loaded</strong>
+                      </div>
+                      <div style={{ padding: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Weather Load Coefficient:</span>
+                        <strong style={{ color: 'var(--orange)' }}>{gridLoadCoeff}x</strong>
+                      </div>
+                      <div style={{ padding: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Solar Radiation (Ambient):</span>
+                        <strong style={{ color: 'var(--cyan)' }}>{solarRadiation} W/m²</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick AI Diagnostics Button */}
+                  <div className="panel" style={{ padding: '20px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div className="panel-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+                      <h3 style={{ fontSize: '12px', color: 'var(--cyan)', fontWeight: 'bold' }}>⚡ AI AUTOPILOT ACTIONS</h3>
+                    </div>
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                      {lang === 'TR' ? 'Tüm sistemi anlık olarak tarayarak kapsamlı bir risk analiz raporu oluşturması için yapay zekayı tetikleyin.' : 'Trigger the AI to execute a comprehensive grid scan and output a mitigation report.'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleChatSubmit(lang === 'TR' ? "Şebekedeki tüm aktif arızaları tarayıp durum analizi yapar mısın?" : "Can you scan all active grid anomalies and compile a diagnostic report?")}
+                      style={{ 
+                        background: 'var(--cyan)', 
+                        color: '#fff', 
+                        border: 'none', 
+                        borderRadius: '6px', 
+                        padding: '10px', 
+                        fontSize: '11px', 
+                        fontWeight: 'bold', 
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      🤖 {lang === 'TR' ? 'Tam Şebeke Analizi Tetikle' : 'Run Full Grid Diagnostics'}
+                    </button>
+                  </div>
+
+                </div>
               </div>
             </div>
           )}
