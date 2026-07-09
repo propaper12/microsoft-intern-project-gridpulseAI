@@ -204,7 +204,7 @@ def health_check():
 @app.get("/api/rules")
 def get_rules():
     import sqlite3
-    from src.vector_store import DB_PATH
+    from backend.vector_store import DB_PATH
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
@@ -224,7 +224,7 @@ def get_rules():
 
 @app.get("/api/search")
 def search_rules(query: str):
-    from src.vector_store import find_relevant_rules
+    from backend.vector_store import find_relevant_rules
     try:
         results = find_relevant_rules(query, top_k=5)
         formatted = []
@@ -248,7 +248,7 @@ def get_system_status():
     # 1. SQLite Status
     sqlite_status = "OFFLINE"
     try:
-        from src.vector_store import DB_PATH
+        from backend.vector_store import DB_PATH
         if os.path.exists(DB_PATH):
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
@@ -292,14 +292,14 @@ def get_system_status():
 
 @app.post("/api/vectorize")
 async def vectorize_text(payload: dict):
-    from src.vector_store import get_embedding
+    from backend.vector_store import get_embedding
     text = payload.get("text", "")
     vector = get_embedding(text)
     return {"text": text, "vector": vector}
 
 @app.post("/api/vector_compare")
 async def compare_vectors(payload: dict):
-    from src.vector_store import get_embedding, cosine_similarity
+    from backend.vector_store import get_embedding, cosine_similarity
     text_a = payload.get("text_a", "")
     text_b = payload.get("text_b", "")
     vec_a = get_embedding(text_a)
@@ -364,7 +364,7 @@ async def copilot_query(payload: dict):
     
     # 1. Tokenization / Vectorization Time
     t_token_start = time.time()
-    from src.vector_store import get_embedding, VOCABULARY, cosine_similarity
+    from backend.vector_store import get_embedding, VOCABULARY, cosine_similarity
     query_vector = get_embedding(user_query)
     tokenization_time_ms = round((time.time() - t_token_start) * 1000, 3)
     if tokenization_time_ms == 0.0:
@@ -372,7 +372,7 @@ async def copilot_query(payload: dict):
         
     # 2. Fetch relevant manual rules from SQLite (Local Vector Search)
     t_sqlite_start = time.time()
-    from src.vector_store import find_relevant_rules
+    from backend.vector_store import find_relevant_rules
     local_rules = find_relevant_rules(user_query, top_k=2)
     
     # --- LANGCHAIN SELF-HEALING / QUERY EXPANSION PATTERN ---
@@ -407,7 +407,7 @@ async def copilot_query(payload: dict):
     ch_latency_ms = round((time.time() - t_ch_start) * 1000, 2)
 
     # 3.5. Microsoft GraphRAG Style Entity-Relation Sub-Graph Extraction
-    from src.graph_rag import graph_store
+    from backend.graph_rag import graph_store
     target_device = None
     target_city = None
     target_alarm = None
@@ -444,7 +444,7 @@ async def copilot_query(payload: dict):
     graph_context_str = "\n".join(formatted_triplets) if formatted_triplets else "No graph relations resolved."
         
     # 4. Build structured prompt using our new builder
-    from src.prompt_builder import build_grid_copilot_prompt
+    from backend.prompt_builder import build_grid_copilot_prompt
     base_prompt = build_grid_copilot_prompt(user_query, active_anomalies_list, local_rules, lang)
     
     # Inject GraphRAG Triplets Context into LLM System Prompt

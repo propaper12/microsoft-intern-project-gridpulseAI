@@ -114,7 +114,7 @@ pip install -r requirements.txt
 ### Step 3: Populate local RAG Vektör Bilgi Bankası (SQLite)
 Initialize the local SQLite database and populate it with smart grid safety rules and computed embeddings:
 ```bash
-python src/initialize_kb.py
+python backend/initialize_kb.py
 ```
 
 ---
@@ -123,15 +123,15 @@ python src/initialize_kb.py
 Activate your virtual environment and start each script in a separate terminal:
 1.  **FastAPI REST/SSE Server:**
     ```bash
-    uvicorn src.api:app --reload --port 8000
+    uvicorn backend.api:app --reload --port 8000
     ```
 2.  **IoT Grid Telemetry Producer:**
     ```bash
-    python src/iot_grid_stream.py
+    python backend/iot_grid_stream.py
     ```
 3.  **Real-Time ML Anomaly Detector:**
     ```bash
-    python src/grid_anomaly_detector.py
+    python backend/grid_anomaly_detector.py
     ```
 
 ---
