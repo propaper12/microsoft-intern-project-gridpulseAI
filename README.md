@@ -137,6 +137,19 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
+## 📖 Technical Documentation
+
+Click the links below to explore the comprehensive technical documentation for the GridPulseAI subsystems:
+
+*   **🏗️ [System Architecture & Data Pipelines](file:///C:/Users/omerc/OneDrive/Masaüstü/microsoft_proje/docs/system_architecture.md):** Detailed overview of Redpanda, Bytewax, ClickHouse, and React data flows.
+*   **🧠 [AI Copilot & Prompt Engineering](file:///C:/Users/omerc/OneDrive/Masaüstü/microsoft_proje/docs/prompt_engineering_guide.md):** System prompt layouts, anti-hallucination guardrails, and context structure.
+*   **🔍 [SQLite Offline Vector Search](file:///C:/Users/omerc/OneDrive/Masaüstü/microsoft_proje/docs/sqlite_vector_search.md):** Vocabulary vectorizer algorithms and Cosine Similarity math equations.
+*   **🧠 [ML Anomaly Detection & SHAP Explanations](file:///C:/Users/omerc/OneDrive/Masaüstü/microsoft_proje/docs/anomaly_detection_shap.md):** XGBoost feature engineering and real-time Explainable AI (XAI) calculations.
+*   **🛠️ [Installation & Troubleshooting Guide](file:///C:/Users/omerc/OneDrive/Masaüstü/microsoft_proje/docs/installation_and_troubleshooting.md):** Detailed environment setup, Docker port resolution, and recovery procedures.
+*   **🔌 [API Reference Manual](file:///C:/Users/omerc/OneDrive/Masaüstü/microsoft_proje/docs/api_reference.md):** REST endpoints schemas, JSON payload models, and LLM orchestration flow.
+
+---
+
 ## 🛡️ Presentation Credentials & Notes
-*   **AI Copilot (RAG):** Click the blue chat bubble at the bottom right. Click any of the **Quick RAG Queries** (e.g. ⚡ Trafo Aşırı Yük) to trigger local SQLite vector search. You will see the matching rule title prepended to the reply (e.g. `[Lokal Bilgi Bankası (RAG) eşleşmesi: Rule 101]`).
+*   **AI Copilot (RAG):** Click the blue chat bubble at the bottom right. Click any of the **Quick RAG Queries** (e.g. ⚡ Trafo Aşırı Yük) to trigger local SQLite vector search. The Gemini 2.5 Flash model will respond, and its source-model badge will be visible at the bottom of the chat bubble.
 *   **Offline Mode:** If Docker is not running, the frontend automatically falls back to an offline simulated stream. You can still present the entire project without any databases running!

@@ -82,6 +82,26 @@ def initialize_database():
         {
             "title": "Rule 105: General Grid Diagnostics and Maintenance",
             "content": "For general diagnostics, verify that phase balance is active and voltage health is within normal limits. Any sustained alarm status over 5 minutes requires sending a field dispatch order."
+        },
+        {
+            "title": "Rule 106: Cyber Security & SCADA Intrusion Prevention",
+            "content": "If anomalous remote command packets or unauthorized external IP addresses attempt connection to SCADA controllers, the system must temporarily lock out write overrides, trigger a security alarm, and write a forensic log."
+        },
+        {
+            "title": "Rule 107: Frequency Out of Bounds Protocol",
+            "content": "Grid frequency must be maintained at a nominal 50Hz. If frequency drops below 49.5Hz or rises above 50.5Hz, operators should initiate immediate primary response reserves, deploying battery energy storage systems (BESS) within 500ms."
+        },
+        {
+            "title": "Rule 108: Renewable Energy Curtailment",
+            "content": "In periods of low load demand and high solar/wind generation, if the substation battery storage SOC (State of Charge) is 100%, operators must curtail renewable injection to prevent transformer voltage swells."
+        },
+        {
+            "title": "Rule 109: Substation Battery Backup Systems",
+            "content": "Substation auxiliary control systems must have battery backup systems capable of providing 8 hours of continuous backup power. Monthly discharge testing should verify cells hold >80% capacity."
+        },
+        {
+            "title": "Rule 110: Smart Meter Cyber Tampering",
+            "content": "If a SmartMeter fails to transmit telemetry for 3 consecutive hours or shows suspicious high variance in load reports, flag it for physical tamper-switch inspections and security check."
         }
     ]
     

@@ -201,6 +201,27 @@ def get_fact_check_breakdown():
 def health_check():
     return {"status": "ok"}
 
+@app.get("/api/rules")
+def get_rules():
+    import sqlite3
+    from src.vector_store import DB_PATH
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, title, content FROM documents")
+        rows = cursor.fetchall()
+        conn.close()
+        return [{"id": r[0], "title": r[1], "content": r[2]} for r in rows]
+    except Exception as e:
+        print("Failed to fetch rules from SQLite:", e)
+        # Static fallback if DB connection fails
+        return [
+            {"id": 101, "title": "Rule 101: Transformer Overload Protocol", "content": "If a Transformer (such as TRAFO_301 or TRAFO_302) experiences a critical overload where the active load exceeds 500kW..."},
+            {"id": 102, "title": "Rule 102: SmartMeter Voltage Range and Phase Balance", "content": "SmartMeter voltage phases must be maintained within the standard range of 216V to 244V..."},
+            {"id": 103, "title": "Rule 103: EV Charger Thermal Protection Limit", "content": "EV Charger units must operate below a safety threshold of 90°C..."},
+            {"id": 104, "title": "Rule 104: Carbon Intensity & Green Routing", "content": "When UK Grid carbon intensity index is high, prioritize drawing power from renewable sources..."}
+        ]
+
 @app.post("/api/copilot")
 async def copilot_query(payload: dict):
     import urllib.request

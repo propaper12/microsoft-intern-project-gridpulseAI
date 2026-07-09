@@ -236,6 +236,22 @@ function App() {
   const [selectedStreet, setSelectedStreet] = useState('Oxford Street');
   const [mitigationLoading, setMitigationLoading] = useState(false);
   const [anomaliesRightTab, setAnomaliesRightTab] = useState('chart');
+  const [dbRules, setDbRules] = useState([]);
+
+  useEffect(() => {
+    const fetchRules = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/rules');
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setDbRules(data);
+        }
+      } catch (e) {
+        console.error("Failed to load rules dynamically from SQLite", e);
+      }
+    };
+    fetchRules();
+  }, []);
 
   useEffect(() => {
     if (alerts.length > 0) {
@@ -297,7 +313,8 @@ function App() {
       setChatMessages((prev) => [...prev, { 
         id: Date.now() + 1, 
         sender: 'ai', 
-        text: `[${engine}] ${aiReply}` 
+        text: aiReply,
+        engine: engine
       }]);
     } catch (e) {
       console.error("AI Copilot request error", e);
@@ -306,8 +323,9 @@ function App() {
           id: Date.now() + 1, 
           sender: 'ai', 
           text: lang === 'TR' 
-            ? "[Local Fallback] Şebeke veri akışı stabil, ClickHouse bağlantısı etkin." 
-            : "[Local Fallback] Grid message streams active, ClickHouse connection online." 
+            ? "Şebeke veri akışı stabil, ClickHouse bağlantısı etkin." 
+            : "Grid message streams active, ClickHouse connection online.",
+          engine: "Local Fallback"
         }]);
       }, 600);
     }
@@ -3119,30 +3137,42 @@ function App() {
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '15px' }}>
-                  <div style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
-                    <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', color: 'var(--cyan)' }}>Rule 101: Transformer Overload Protocol</h4>
-                    <p style={{ margin: 0, fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                      If a Transformer (such as TRAFO_301 or TRAFO_302) experiences a critical overload where the active load exceeds 500kW, the operator must trigger remote load shedding or isolate the device immediately to prevent grid cascade failures.
-                    </p>
-                  </div>
-                  <div style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
-                    <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', color: 'var(--cyan)' }}>Rule 102: SmartMeter Voltage & Phase Balance</h4>
-                    <p style={{ margin: 0, fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                      SmartMeter voltage phases must be maintained within the standard range of 216V to 244V. If the voltage drops below 200V, it indicates a severe voltage drop. Check local phase balance.
-                    </p>
-                  </div>
-                  <div style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
-                    <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', color: 'var(--cyan)' }}>Rule 103: EV Charger Thermal Protection Limit</h4>
-                    <p style={{ margin: 0, fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                      EV Charger units (such as CHARGER_201 or CHARGER_202) must operate below a safety threshold of 90°C. If temperature readings exceed 90°C, it triggers a critical overheating warning.
-                    </p>
-                  </div>
-                  <div style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
-                    <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', color: 'var(--cyan)' }}>Rule 104: Carbon Intensity & Green Routing</h4>
-                    <p style={{ margin: 0, fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                      When UK Grid carbon intensity index is high, operators should prioritize drawing power from renewable sources like wind, solar, and hydro, and schedule charging during off-peak hours.
-                    </p>
-                  </div>
+                  {dbRules.length > 0 ? (
+                    dbRules.map((rule) => (
+                      <div key={rule.id} style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                        <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', color: 'var(--cyan)' }}>{rule.title}</h4>
+                        <p style={{ margin: 0, fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                          {rule.content}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    [
+                      {
+                        "title": "Rule 101: Transformer Overload Protocol",
+                        "content": "If a Transformer (such as TRAFO_301 or TRAFO_302) experiences a critical overload where the active load exceeds 500kW..."
+                      },
+                      {
+                        "title": "Rule 102: SmartMeter Voltage Range and Phase Balance",
+                        "content": "SmartMeter voltage phases must be maintained within the standard range of 216V to 244V..."
+                      },
+                      {
+                        "title": "Rule 103: EV Charger Thermal Protection Limit",
+                        "content": "EV Charger units (such as CHARGER_201 or CHARGER_202) must operate below a safety threshold of 90°C..."
+                      },
+                      {
+                        "title": "Rule 104: Carbon Intensity & Green Routing",
+                        "content": "When UK Grid carbon intensity index is high, operators should prioritize drawing power from renewable sources..."
+                      }
+                    ].map((rule, idx) => (
+                      <div key={idx} style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                        <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', color: 'var(--cyan)' }}>{rule.title}</h4>
+                        <p style={{ margin: 0, fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                          {rule.content}
+                        </p>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -3408,7 +3438,10 @@ function App() {
           }}>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
-              <strong style={{ fontSize: '12px', color: 'var(--text-main)' }}>🌐 GridPulse AI Copilot</strong>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <strong style={{ fontSize: '12px', color: 'var(--text-main)' }}>🌐 GridPulse AI Copilot</strong>
+                <span style={{ fontSize: '9px', color: 'var(--cyan)' }}>Model: Gemini 2.5 Flash (Active)</span>
+              </div>
               <span style={{ fontSize: '8px', background: 'var(--green)', color: '#fff', padding: '1px 5px', borderRadius: '3px', fontWeight: 'bold' }}>
                 LOCAL RAG ACTIVE
               </span>
@@ -3477,10 +3510,29 @@ function App() {
                     borderRadius: '10px',
                     maxWidth: '85%',
                     fontSize: '11px',
-                    lineHeight: '1.4'
+                    lineHeight: '1.4',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
                   }}
                 >
-                  {msg.textKey ? TRANSLATIONS[lang][msg.textKey] : msg.text}
+                  <span>{msg.textKey ? TRANSLATIONS[lang][msg.textKey] : msg.text}</span>
+                  {msg.sender === 'ai' && (
+                    <span style={{ 
+                      fontSize: '8px', 
+                      color: 'var(--cyan)', 
+                      opacity: 0.8, 
+                      alignSelf: 'flex-start',
+                      fontFamily: 'JetBrains Mono, monospace',
+                      borderTop: '1px solid rgba(255,255,255,0.05)',
+                      paddingTop: '2px',
+                      marginTop: '2px',
+                      display: 'block',
+                      width: '100%'
+                    }}>
+                      ⚙️ {msg.engine || (lang === 'TR' ? "Gemini 2.5 Flash" : "Gemini 2.5 Flash")}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
