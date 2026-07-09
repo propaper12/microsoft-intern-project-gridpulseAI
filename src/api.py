@@ -311,6 +311,22 @@ async def compare_vectors(payload: dict):
         "similarity": round(similarity * 100, 1)
     }
 
+def expand_query_semantics(query: str) -> str:
+    lower = query.lower()
+    expanded_terms = [query]
+    # Simple semantic rule-expansion mapping
+    if "trafo" in lower or "substation" in lower or "transformer" in lower:
+        expanded_terms.extend(["transformer", "overload", "load"])
+    if "sıcaklık" in lower or "ısınma" in lower or "temperature" in lower or "heat" in lower:
+        expanded_terms.extend(["temperature", "overheat", "overheating"])
+    if "voltaj" in lower or "voltage" in lower or "düşüş" in lower:
+        expanded_terms.extend(["voltage", "drop", "phase", "stability"])
+    if "şarj" in lower or "ev" in lower or "charger" in lower:
+        expanded_terms.extend(["ev", "charger", "overload", "limit"])
+    if "siber" in lower or "güvenlik" in lower or "sayaç" in lower or "security" in lower:
+        expanded_terms.extend(["meter", "security", "tampering", "manipulation"])
+    return " ".join(list(set(expanded_terms)))
+
 @app.post("/api/copilot")
 async def copilot_query(payload: dict):
     import urllib.request
@@ -333,6 +349,18 @@ async def copilot_query(payload: dict):
     t_sqlite_start = time.time()
     from src.vector_store import find_relevant_rules
     local_rules = find_relevant_rules(user_query, top_k=2)
+    
+    # --- LANGCHAIN SELF-HEALING / QUERY EXPANSION PATTERN ---
+    self_corrected = False
+    expanded_query = ""
+    if not local_rules or (local_rules[0]["score"] < 0.35):
+        self_corrected = True
+        expanded_query = expand_query_semantics(user_query)
+        # Re-run search with expanded queries to cover vocabulary mismatches
+        local_rules = find_relevant_rules(expanded_query, top_k=2)
+        # Update search vector for RAG details log
+        query_vector = get_embedding(expanded_query)
+        
     sqlite_latency_ms = round((time.time() - t_sqlite_start) * 1000, 2)
     
     # 3. Fetch active anomalies from ClickHouse
@@ -473,6 +501,8 @@ async def copilot_query(payload: dict):
         "retrieved_rules": retrieved_rules_info,
         "active_anomalies": active_anomalies_list,
         "system_prompt": system_prompt,
+        "self_corrected": self_corrected,
+        "expanded_query": expanded_query,
         "metrics": {
             "tokenization_time_ms": tokenization_time_ms,
             "sqlite_latency_ms": sqlite_latency_ms,

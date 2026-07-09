@@ -3946,6 +3946,26 @@ function App() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', overflowY: 'auto', maxHeight: '420px', fontSize: '11px', paddingRight: '4px' }}>
               
+              {selectedRagDetails.self_corrected && (
+                <div style={{
+                  padding: '10px 14px',
+                  background: 'rgba(245, 158, 11, 0.1)',
+                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                  borderRadius: '8px',
+                  fontSize: '11px',
+                  color: '#fbbf24',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  textAlign: 'left'
+                }}>
+                  <span style={{ fontSize: '16px' }}>⚡</span>
+                  <div>
+                    <strong>Self-Healing RAG Active:</strong> Initial query matches were weak. The system executed LangChain-style Query Expansion to <em>"{selectedRagDetails.expanded_query}"</em> to retrieve accurate safety guidelines.
+                  </div>
+                </div>
+              )}
+
               {/* Step 1: User Query & Vectorization */}
               <div style={{ padding: '12px', background: 'rgba(56, 189, 248, 0.03)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
