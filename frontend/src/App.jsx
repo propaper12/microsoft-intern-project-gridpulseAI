@@ -3522,7 +3522,10 @@ function App() {
                             {msg.rag_details && (
                               <button
                                 type="button"
-                                onClick={() => setSelectedRagDetails(msg.rag_details)}
+                                onClick={() => {
+                                  setSelectedRagDetails(msg.rag_details);
+                                  setActiveTab('rag_report');
+                                }}
                                 style={{
                                   background: 'none',
                                   border: 'none',
@@ -3682,6 +3685,268 @@ function App() {
                   </div>
 
                 </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'rag_report' && selectedRagDetails && (
+            <div className="print-container" style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '10px' }}>
+              {/* Action Bar (no-print) */}
+              <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-panel)', padding: '12px 20px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                <button 
+                  onClick={() => setActiveTab('ai_brain')}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold' }}
+                >
+                  ← {lang === 'TR' ? 'Yapay Zeka Beynine Geri Dön' : 'Back to AI Brain'}
+                </button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button 
+                    onClick={() => window.print()}
+                    style={{ background: 'var(--cyan)', color: '#fff', border: 'none', borderRadius: '6px', padding: '8px 18px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    🖨️ {lang === 'TR' ? 'PDF Olarak Kaydet / Raporu Yazdır' : 'Export PDF / Print Report'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Document Header */}
+              <div className="print-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid var(--cyan)', paddingBottom: '15px' }}>
+                <div>
+                  <h1 style={{ margin: 0, fontSize: '20px', fontFamily: 'Rajdhani', fontWeight: '700', letterSpacing: '1px', color: 'var(--cyan)' }}>GRIDPULSE.AI - SCADA SYSTEMS</h1>
+                  <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono' }}>
+                    DOCUMENT ID: AUDIT_{Math.floor(100000 + Math.random() * 900000)} / CLASSIFICATION: CONFIDENTIAL
+                  </span>
+                </div>
+                <div style={{ textAlign: 'right', fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono' }}>
+                  <div>DATE: {new Date().toLocaleString()}</div>
+                  <div>OPERATOR SYSTEM HASH: OP_SCADA_NODE_301</div>
+                </div>
+              </div>
+
+              {/* Title Section */}
+              <div style={{ textAlign: 'center', margin: '15px 0' }}>
+                <h2 style={{ fontSize: '16px', textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--text-main)', margin: '0 0 5px 0' }}>
+                  {lang === 'TR' ? 'RAG CO-COPILOT DENETİM VE UYUMLULUK RAPORU' : 'RAG CO-COPILOT AUDIT & COMPLIANCE REPORT'}
+                </h2>
+                <span style={{ fontSize: '9px', fontStyle: 'italic', color: 'var(--text-muted)' }}>
+                  Verification and tracing of LLM inputs, vector database retrievals, and real-time telemetry augmentations.
+                </span>
+              </div>
+
+              {/* Row 1: Primary Metrics & Indicators */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px' }}>
+                <div className="print-card" style={{ background: 'rgba(56, 189, 248, 0.05)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '12px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Groundedness score</span>
+                  <strong style={{ fontSize: '18px', color: selectedRagDetails.metrics.groundedness_score >= 90 ? '#10b981' : '#fbbf24', textShadow: '0 0 8px rgba(16,185,129,0.2)' }}>
+                    {selectedRagDetails.metrics.groundedness_score}%
+                  </strong>
+                </div>
+                <div className="print-card" style={{ background: 'rgba(56, 189, 248, 0.05)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '12px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Total Latency</span>
+                  <strong style={{ fontSize: '18px', color: 'var(--cyan)' }}>{selectedRagDetails.metrics.total_latency_ms} ms</strong>
+                </div>
+                <div className="print-card" style={{ background: 'rgba(56, 189, 248, 0.05)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '12px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Telemetry Scanned</span>
+                  <strong style={{ fontSize: '18px', color: '#fbbf24' }}>{selectedRagDetails.metrics.scanned_rows} rows</strong>
+                </div>
+                <div className="print-card" style={{ background: 'rgba(56, 189, 248, 0.05)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '12px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Token Allocation</span>
+                  <strong style={{ fontSize: '18px', color: '#a78bfa' }}>{selectedRagDetails.metrics.token_stats?.total_tokens || 0}</strong>
+                </div>
+              </div>
+
+              {/* Row 2: Query expansion & search details */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <div className="print-card" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '15px' }}>
+                  <h3 style={{ fontSize: '12px', margin: '0 0 10px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '6px', color: 'var(--text-main)' }}>
+                    🔍 User Query & Expansion Trace
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '10px', fontFamily: 'Inter' }}>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)' }}>Raw Query: </span>
+                      <strong style={{ color: 'var(--text-main)' }}>"{selectedRagDetails.query}"</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)' }}>Self-Healing Correction: </span>
+                      <strong style={{ color: selectedRagDetails.self_corrected ? 'var(--orange)' : 'var(--green)' }}>
+                        {selectedRagDetails.self_corrected ? 'Yes (Expanded)' : 'No (Direct)'}
+                      </strong>
+                    </div>
+                    {selectedRagDetails.expanded_query && (
+                      <div>
+                        <span style={{ color: 'var(--text-muted)' }}>Expanded Query Terms: </span>
+                        <strong style={{ color: 'var(--cyan)' }}>"{selectedRagDetails.expanded_query}"</strong>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="print-card" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '15px' }}>
+                  <h3 style={{ fontSize: '12px', margin: '0 0 10px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '6px', color: 'var(--text-main)' }}>
+                    📊 Query Embedding Vector (L2 Normalized)
+                  </h3>
+                  <div style={{ 
+                    fontFamily: 'JetBrains Mono', 
+                    fontSize: '8px', 
+                    background: 'rgba(0,0,0,0.2)', 
+                    padding: '10px', 
+                    borderRadius: '6px', 
+                    maxHeight: '65px', 
+                    overflowY: 'auto',
+                    wordBreak: 'break-all',
+                    color: 'var(--text-main)'
+                  }}>
+                    [{selectedRagDetails.query_vector ? selectedRagDetails.query_vector.slice(0, 16).join(', ') : '0.0'}, ...]
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 3: GraphRAG Subgraph Map & Telemetry Context */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <div className="print-card" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '15px' }}>
+                  <h3 style={{ fontSize: '12px', margin: '0 0 10px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '6px', color: 'var(--text-main)' }}>
+                    🌐 Resolved Knowledge Graph Relations (GraphRAG Subgraph)
+                  </h3>
+                  {selectedRagDetails.graph_context && selectedRagDetails.graph_context.triplets && selectedRagDetails.graph_context.triplets.length > 0 ? (
+                    <div>
+                      {/* SVG Visualizer */}
+                      {(() => {
+                        const triplets = selectedRagDetails.graph_context.triplets;
+                        const uniqueNodes = Array.from(new Set(
+                          triplets.flatMap(t => [t.source, t.target])
+                        ));
+                        
+                        const getNodeCoords = (name) => {
+                          if (name.startsWith('Rule')) return { x: 260, y: 35, color: '#a78bfa', labelColor: '#c084fc' };
+                          if (name.includes('TRAFO') || name.includes('CHARGER') || name.includes('METER')) return { x: 150, y: 18, color: '#38bdf8', labelColor: '#7dd3fc' };
+                          if (['Wembley', 'Wimbledon', 'Stratford', 'Chelsea', 'Camden', 'Greenwich', 'Westminster', 'Brixton', 'Hackney'].includes(name)) return { x: 40, y: 18, color: '#10b981', labelColor: '#6ee7b7' };
+                          if (['CRITICAL_OVERLOAD', 'OVERHEATING', 'VOLTAGE_DROP', 'Transformer', 'EVCharger', 'SmartMeter'].includes(name)) return { x: 150, y: 95, color: '#fb7185', labelColor: '#fda4af' };
+                          return { x: 150, y: 55, color: '#cbd5e1', labelColor: '#cbd5e1' };
+                        };
+                        
+                        const nodePositions = {};
+                        const offsets = {};
+                        
+                        uniqueNodes.forEach(node => {
+                          const base = getNodeCoords(node);
+                          const key = `${base.x}-${base.y}`;
+                          if (!offsets[key]) offsets[key] = 0;
+                          
+                          nodePositions[node] = {
+                            x: base.x,
+                            y: base.y + (offsets[key] * 28),
+                            color: base.color,
+                            labelColor: base.labelColor
+                          };
+                          offsets[key] += 1;
+                        });
+
+                        const maxHeight = Math.max(100, ...Object.values(offsets).map(o => o * 28 + 15));
+
+                        return (
+                          <div style={{ background: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '6px', padding: '8px' }}>
+                            <svg width="100%" height={maxHeight} style={{ overflow: 'visible' }}>
+                              {triplets.map((t, idx) => {
+                                const start = nodePositions[t.source];
+                                const end = nodePositions[t.target];
+                                if (!start || !end) return null;
+                                return (
+                                  <g key={`edge-${idx}`}>
+                                    <line x1={start.x} y1={start.y} x2={end.x} y2={end.y} stroke={start.color} strokeWidth="1" strokeDasharray="3 3" style={{ opacity: 0.6 }} />
+                                    <text x={(start.x + end.x) / 2} y={(start.y + end.y) / 2 - 2} fill="#94a3b8" fontSize="6px" fontFamily="JetBrains Mono" textAnchor="middle">{t.relation}</text>
+                                  </g>
+                                );
+                              })}
+                              {Object.entries(nodePositions).map(([name, pos], idx) => (
+                                <g key={`node-${idx}`}>
+                                  <circle cx={pos.x} cy={pos.y} r="6" fill={pos.color} />
+                                  <text x={pos.x} y={pos.y - 8} fill={pos.labelColor} fontSize="7px" fontWeight="bold" fontFamily="JetBrains Mono" textAnchor="middle">{name}</text>
+                                </g>
+                              ))}
+                            </svg>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  ) : (
+                    <div style={{ color: 'var(--text-muted)', fontSize: '10px', fontStyle: 'italic' }}>No relations mapped.</div>
+                  )}
+                </div>
+
+                <div className="print-card" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '15px' }}>
+                  <h3 style={{ fontSize: '12px', margin: '0 0 10px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '6px', color: 'var(--text-main)' }}>
+                    📡 ClickHouse Active Telemetry Context
+                  </h3>
+                  {selectedRagDetails.active_anomalies && selectedRagDetails.active_anomalies.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {selectedRagDetails.active_anomalies.map((anom, idx) => (
+                        <div key={idx} style={{ padding: '8px', background: 'rgba(0,0,0,0.15)', borderLeft: '3px solid var(--red)', borderRadius: '4px', fontSize: '9.5px', fontFamily: 'JetBrains Mono', color: 'var(--text-main)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                            <strong>{anom.device} ({anom.city})</strong>
+                            <span style={{ color: 'var(--red)' }}>Stability: {anom.stability_score}%</span>
+                          </div>
+                          <div style={{ color: 'var(--text-muted)', fontSize: '8.5px' }}>Reason: {anom.reason}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ color: 'var(--text-muted)', fontSize: '10px', fontStyle: 'italic' }}>No anomalies active in context window.</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Row 4: SQLite Rules & Similarity Breakdown */}
+              <div className="print-card" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '15px' }}>
+                <h3 style={{ fontSize: '12px', margin: '0 0 10px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '6px', color: 'var(--text-main)' }}>
+                  🗄️ SQLite Vector Retrieval Matches
+                </h3>
+                {selectedRagDetails.retrieved_rules && selectedRagDetails.retrieved_rules.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {selectedRagDetails.retrieved_rules.map((rule, idx) => (
+                      <div key={idx} style={{ padding: '12px', background: 'rgba(0,0,0,0.12)', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                          <strong style={{ fontSize: '10.5px', color: 'var(--cyan)' }}>{rule.title}</strong>
+                          <span style={{ fontSize: '9px', fontFamily: 'JetBrains Mono', color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '2px 6px', borderRadius: '4px' }}>
+                            Score: {rule.score}%
+                          </span>
+                        </div>
+                        <p style={{ fontSize: '9.5px', color: 'var(--text-main)', margin: '0 0 8px 0', lineHeight: '1.4' }}>{rule.content}</p>
+                        
+                        {/* Cosine math breakdown */}
+                        <div style={{ display: 'flex', gap: '15px', fontSize: '8px', fontFamily: 'JetBrains Mono', color: 'var(--text-muted)', borderTop: '1px dashed rgba(255,255,255,0.05)', paddingTop: '6px' }}>
+                          <span>Dot Product: {rule.dot_product}</span>
+                          <span>||Query||: {rule.norm_q}</span>
+                          <span>||Rule||: {rule.norm_r}</span>
+                          <span style={{ color: 'var(--cyan)' }}>Shared Vocabulary: {rule.shared_words ? rule.shared_words.join(', ') : 'None'}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ color: 'var(--text-muted)', fontSize: '10px', fontStyle: 'italic' }}>No rules matched.</div>
+                )}
+              </div>
+
+              {/* Row 5: Augmented System Prompt Payload */}
+              <div className="print-card" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '15px' }}>
+                <h3 style={{ fontSize: '12px', margin: '0 0 10px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '6px', color: 'var(--text-main)' }}>
+                  🛡️ Augmented System Prompt Context Payload
+                </h3>
+                <pre style={{ 
+                  margin: 0, 
+                  fontSize: '8.5px', 
+                  fontFamily: 'JetBrains Mono', 
+                  background: 'rgba(0,0,0,0.2)', 
+                  padding: '12px', 
+                  borderRadius: '6px', 
+                  whiteSpace: 'pre-wrap', 
+                  maxHeight: '180px', 
+                  overflowY: 'auto',
+                  lineHeight: '1.4',
+                  color: 'var(--text-main)'
+                }}>
+                  {selectedRagDetails.system_prompt}
+                </pre>
               </div>
             </div>
           )}
