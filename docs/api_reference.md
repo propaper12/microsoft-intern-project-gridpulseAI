@@ -44,11 +44,37 @@ Submits a query to the AI Copilot Chatbot. It executes a local SQLite vector sim
           {
             "title": "Rule 101: Transformer Overload Protocol",
             "content": "If a Transformer (such as TRAFO_301 or TRAFO_302) experiences a critical overload...",
-            "score": 86.6
+            "score": 86.6,
+            "dot_product": 0.5,
+            "norm_q": 1.0,
+            "norm_r": 1.0,
+            "shared_words": ["trafo", "yükleme"]
           }
         ],
         "active_anomalies": [],
-        "system_prompt": "You are GridPulse.AI..."
+        "system_prompt": "You are GridPulse.AI...",
+        "self_corrected": false,
+        "expanded_query": "",
+        "graph_context": {
+          "entities": ["TRAFO_301", "Wembley", "CRITICAL_OVERLOAD"],
+          "triplets": [
+            { "source": "TRAFO_301", "relation": "IS_LOCATED_IN", "target": "Wembley" }
+          ]
+        },
+        "metrics": {
+          "tokenization_time_ms": 0.085,
+          "sqlite_latency_ms": 2.45,
+          "clickhouse_latency_ms": 1.15,
+          "llm_latency_ms": 680.0,
+          "total_latency_ms": 684.5,
+          "scanned_rows": 128,
+          "groundedness_score": 96.4,
+          "token_stats": {
+            "input_tokens": 340,
+            "output_tokens": 42,
+            "total_tokens": 382
+          }
+        }
       }
     }
     ```

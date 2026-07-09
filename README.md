@@ -13,11 +13,10 @@
     *   **AI Autopilot Diagnostics:** Execute one-click full grid scans causing the AI to retrieve ClickHouse warnings, compare SQLite guidelines, and compile comprehensive diagnostic reports.
 *   **🔍 RAG Akış Analizi (RAG Execution Path Inspector):**
     *   Click **"🔍 RAG Analiz Raporu"** under any AI chat reply to view a neon-styled step-by-step diagnostic modal.
-    *   Inspect exactly: (1) The user query's 32-D vectorized representation, (2) The retrieved SQLite rules with Cosine Similarity scores, (3) Live ClickHouse telemetry anomalies, and (4) The final augmented system prompt.
-*   **🧪 Vektör & Kosinüs Matematik Simülatörü (Vector Cosine Math Lab):**
-    *   An interactive math playground in the Rules tab to prove vector space mechanics.
-    *   **Text Vectorizer:** Input any word and view its L2-normalized 32-dimensional float array representation.
-    *   **Live Cosine Similarity Tester:** Input two different sentences (e.g. *trafo* vs *transformer*) and compute their semantic similarity percentage with a live progress bar.
+    *   **⚡ Self-Healing RAG (LangChain pattern):** Automatically runs semantic Query Expansion if the initial SQLite match score is weak (<35%), expanding terms to cover synonyms (e.g. *"trafo"* $\rightarrow$ *"transformer overload"*).
+    *   **🌐 SQLite Knowledge Graph (GraphRAG pattern):** Resolves 1-hop and 2-hop Entity-Relation links from SQLite `graph_nodes` & `graph_edges` tables, displaying an SVG Graph visualizer with glowing colored nodes and relation paths.
+    *   **🎯 Groundedness (Faithfulness) Score:** Evaluates the exact lexical word overlap between the LLM output and the retrieved sources, outputting a dynamic percentage score (e.g. *96.4%*) to check for hallucinations.
+    *   Inspect exactly: (1) Vectorized query floats, (2) SQLite Cosine Similarity + Keyword Boost reranking, (3) SVG Knowledge Graph Map, (4) ClickHouse live anomalies, and (5) Augmented system prompt.
 *   **🗺️ Geographic SCADA Map (Google Maps Integration):** 
     *   Leverages high-speed Google Maps Roadmap CDN layers to load instantly.
     *   Interactive **SVG Cable Routes** (Polylines) across 9 key locations in London, changing color dynamically based on real-time cable thermal stress.

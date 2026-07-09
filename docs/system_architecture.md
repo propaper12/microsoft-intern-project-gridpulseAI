@@ -48,14 +48,20 @@ graph TD
 
 ---
 
-## 🧠 2. Offline Retrieval-Augmented Generation (RAG) Pipeline
+## 🧠 2. Offline Retrieval-Augmented Generation (RAG) & GraphRAG Pipeline
 
-*   **Local Knowledge Store (`data/grid_rules_kb.db`):**
-    A local SQLite database containing official operating rules (e.g. Transformer Limits, Phase Voltage Balances, EV Thermal Overloads) initialized by `src/initialize_kb.py`.
-*   **Cosine Similarity Search Engine (`src/vector_store.py`):**
-    Implements a zero-dependency, local TF-IDF style vectorizer and cosine similarity function. It converts user queries to frequency vectors and compares them against the stored rules in SQLite to pull the top matching documents entirely offline.
-*   **AI Copilot Integration (`src/api.py` & `src/prompt_builder.py`):**
-    Injects the matching SQLite rules and active ClickHouse anomalies directly into the system context, grounding the Large Language Model and preventing hallucination.
+*   **Local Knowledge Store & Graph Database (`data/grid_rules_kb.db`):**
+    A local SQLite database containing official operating rules (e.g. Transformer Limits, Phase Voltage Balances, EV Thermal Overloads) and relational graph tables (`graph_nodes` and `graph_edges`) representing relationships between devices, locations, and safety protocols.
+*   **Knowledge Graph Retriever (`src/graph_rag.py`):**
+    Implements a local Entity-Relation search (Microsoft GraphRAG Local Search pattern) that resolves direct and 2-hop relationships matching the active query and telemetry.
+*   **Cosine Similarity & Keyword Boost Engine (`src/vector_store.py`):**
+    Implements a hybrid vector-keyword search. It converts user queries to frequency vectors and compares them against rules, applying a metadata exact-keyword boost (+8% up to +25% per matching core keyword) to ensure exact rule matches rank at the top.
+*   **Self-Healing Retriever & Query Expander (`src/api.py`):**
+    A closed-loop retriever that automatically runs Query Expansion if the initial document match is weak (<35% score), zipping synonyms together to retrieve accurate references.
+*   **Groundedness Evaluator (`src/api.py`):**
+    A production metrics evaluator (inspired by OpenAI Cookbook) that measures lexical overlap between the LLM output and source context, outputting a dynamic "Groundedness Score" to check for hallucinations.
+*   **AI Copilot Integration (`src/prompt_builder.py`):**
+    Injects matching rules, ClickHouse anomalies, and GraphRAG triplets into the system context, routing few-shot prompt templates to ground LLM inference.
 
 ---
 
