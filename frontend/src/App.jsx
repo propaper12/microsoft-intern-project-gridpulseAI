@@ -4023,6 +4023,45 @@ function App() {
                 )}
               </div>
 
+              {/* Step 2.5: Microsoft GraphRAG Style Knowledge Graph Relations */}
+              <div style={{ padding: '12px', background: 'rgba(16, 185, 129, 0.03)', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', padding: '2px 6px', borderRadius: '4px', marginRight: '8px', fontSize: '9px', fontWeight: 'bold', fontFamily: 'JetBrains Mono' }}>STEP 2.5</span>
+                  <strong style={{ color: '#e2e8f0', fontSize: '10px' }}>Knowledge Graph Relations (GraphRAG Local Search)</strong>
+                </div>
+                {selectedRagDetails.graph_context && selectedRagDetails.graph_context.triplets && selectedRagDetails.graph_context.triplets.length > 0 ? (
+                  <div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px' }}>
+                      {selectedRagDetails.graph_context.triplets.map((triplet, idx) => (
+                        <div key={idx} style={{ 
+                          fontFamily: 'JetBrains Mono', 
+                          fontSize: '9.5px', 
+                          background: 'rgba(0,0,0,0.15)', 
+                          border: '1px solid rgba(255,255,255,0.03)', 
+                          borderRadius: '4px', 
+                          padding: '6px 10px', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'space-between',
+                          color: '#cbd5e1'
+                        }}>
+                          <span style={{ color: '#6ee7b7' }}>({triplet.source})</span>
+                          <span style={{ color: '#94a3b8', fontSize: '8px', borderBottom: '1px dashed rgba(255,255,255,0.2)', paddingBottom: '2px' }}>
+                            --[{triplet.relation}]--&gt;
+                          </span>
+                          <span style={{ color: '#a78bfa' }}>({triplet.target})</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ fontSize: '8.5px', color: '#94a3b8', marginTop: '8px', fontFamily: 'sans-serif', fontStyle: 'italic' }}>
+                      🔗 Multi-hop semantic links resolved. Triplets were successfully injected into the LLM system prompt for relational reasoning.
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ color: '#94a3b8', fontStyle: 'italic', padding: '4px' }}>No Graph relations resolved for this query.</div>
+                )}
+              </div>
+
               {/* Step 3: ClickHouse Ingestion */}
               <div style={{ padding: '12px', background: 'rgba(244, 63, 94, 0.03)', border: '1px solid rgba(244, 63, 94, 0.25)', borderRadius: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>

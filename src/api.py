@@ -377,13 +377,49 @@ async def copilot_query(payload: dict):
                 "stability_score": r[3],
                 "diagnostics": r[4]
             })
-    except Exception as e:
-        print("Failed to fetch anomalies from ClickHouse:", e)
-    ch_latency_ms = round((time.time() - t_ch_start) * 1000, 2)
+    # 3.5. Microsoft GraphRAG Style Entity-Relation Sub-Graph Extraction
+    from src.graph_rag import graph_store
+    target_device = None
+    target_city = None
+    target_alarm = None
+    
+    # Check if user query matches any known graph nodes
+    for d in graph_store.nodes["devices"]:
+        if d.lower() in user_query.lower():
+            target_device = d
+    for c in graph_store.nodes["substations"]:
+        if c.lower() in user_query.lower():
+            target_city = c
+    for a in graph_store.nodes["alarms"]:
+        if a.lower() in user_query.lower():
+            target_alarm = a
+            
+    # Fallback to the first active anomaly details if query mentions nothing specific
+    if not target_device and active_anomalies_list:
+        target_device = active_anomalies_list[0]["device"]
+        target_city = active_anomalies_list[0]["city"]
+        target_alarm = active_anomalies_list[0]["reason"]
+        
+    graph_context = {"entities": [], "triplets": []}
+    if target_device or target_city or target_alarm:
+        graph_context = graph_store.retrieve_local_subgraph(
+            target_device or "",
+            target_city or "",
+            target_alarm or ""
+        )
+        
+    # Format graph triplets for the LLM prompt
+    formatted_triplets = []
+    for t in graph_context.get("triplets", []):
+        formatted_triplets.append(f"({t['source']}) --[{t['relation']}]--> ({t['target']})")
+    graph_context_str = "\n".join(formatted_triplets) if formatted_triplets else "No graph relations resolved."
         
     # 4. Build structured prompt using our new builder
     from src.prompt_builder import build_grid_copilot_prompt
-    system_prompt = build_grid_copilot_prompt(user_query, active_anomalies_list, local_rules, lang)
+    base_prompt = build_grid_copilot_prompt(user_query, active_anomalies_list, local_rules, lang)
+    
+    # Inject GraphRAG Triplets Context into LLM System Prompt
+    system_prompt = base_prompt + f"\n\n[KNOWLEDGE GRAPH TRIPLETS (GraphRAG)]\n{graph_context_str}"
     
     reply = ""
     engine = "GridPulse Local AI Model"
@@ -503,6 +539,7 @@ async def copilot_query(payload: dict):
         "system_prompt": system_prompt,
         "self_corrected": self_corrected,
         "expanded_query": expanded_query,
+        "graph_context": graph_context,
         "metrics": {
             "tokenization_time_ms": tokenization_time_ms,
             "sqlite_latency_ms": sqlite_latency_ms,
