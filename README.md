@@ -139,14 +139,20 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## 📖 Technical Documentation
 
-Click the links below to explore the comprehensive technical documentation for the GridPulseAI subsystems:
+Explore the comprehensive technical guides and manuals detailing the GridPulseAI architecture and AI models:
 
-*   **🏗️ [System Architecture & Data Pipelines](file:///C:/Users/omerc/OneDrive/Masaüstü/microsoft_proje/docs/system_architecture.md):** Detailed overview of Redpanda, Bytewax, ClickHouse, and React data flows.
-*   **🧠 [AI Copilot & Prompt Engineering](file:///C:/Users/omerc/OneDrive/Masaüstü/microsoft_proje/docs/prompt_engineering_guide.md):** System prompt layouts, anti-hallucination guardrails, and context structure.
-*   **🔍 [SQLite Offline Vector Search](file:///C:/Users/omerc/OneDrive/Masaüstü/microsoft_proje/docs/sqlite_vector_search.md):** Vocabulary vectorizer algorithms and Cosine Similarity math equations.
-*   **🧠 [ML Anomaly Detection & SHAP Explanations](file:///C:/Users/omerc/OneDrive/Masaüstü/microsoft_proje/docs/anomaly_detection_shap.md):** XGBoost feature engineering and real-time Explainable AI (XAI) calculations.
-*   **🛠️ [Installation & Troubleshooting Guide](file:///C:/Users/omerc/OneDrive/Masaüstü/microsoft_proje/docs/installation_and_troubleshooting.md):** Detailed environment setup, Docker port resolution, and recovery procedures.
-*   **🔌 [API Reference Manual](file:///C:/Users/omerc/OneDrive/Masaüstü/microsoft_proje/docs/api_reference.md):** REST endpoints schemas, JSON payload models, and LLM orchestration flow.
+*   **🏗️ [System Architecture & Data Pipelines](docs/system_architecture.md):** 
+    *   *Açıklama / Description:* Projenin gerçek zamanlı veri akış mimarisini açıklar. Bytewax stream işlemcisi, Redpanda (Kafka) mesaj kuyrukları ve ClickHouse OLAP veritabanının entegrasyon şemalarını içerir.
+*   **🧠 [AI Copilot & Prompt Engineering Guide](docs/prompt_engineering_guide.md):** 
+    *   *Açıklama / Description:* RAG asistanının rol tanımlarını ve güvenlik bariyerlerini içerir. Yapay zekaya verilen sistem kuralları, anti-halüsinasyon sınırları ve operasyonel SCADA komut şablonlarını detaylandırır.
+*   **🔍 [SQLite Offline Vector Search](docs/sqlite_vector_search.md):** 
+    *   *Açıklama / Description:* Çevrimdışı vektör arama motorunun matematiksel altyapısını belgeler. Metinlerin kelime frekans vektörlerine dönüştürülmesini ve Cosine Similarity (Kosinüs Benzerliği) formülüyle kurallarla eşleştirilmesini gösterir.
+*   **📈 [ML Anomaly Detection & SHAP Explanations](docs/anomaly_detection_shap.md):** 
+    *   *Açıklama / Description:* Makine öğrenimi tabanlı arıza tespit modelini açıklar. XGBoost modelinin öznitelik ağırlıklarını ve SHAP değerleri kullanarak üretilen açıklanabilir yapay zeka (XAI) tanı çıktılarını belgeler.
+*   **🛠️ [Installation & Troubleshooting Guide](docs/installation_and_troubleshooting.md):** 
+    *   *Açıklama / Description:* Projenin sıfırdan kurulum ve devreye alma adımlarını özetler. Python sanal ortamı, Node.js bağımlılıkları ve Docker port çakışması gibi yaygın hataların çözümlerini listeler.
+*   **🔌 [API Reference Manual](docs/api_reference.md):** 
+    *   *Açıklama / Description:* FastAPI backend servislerinin teknik dokümantasyonudur. RAG sohbet `/api/copilot` girdileri, dynamic `/api/rules` çıktıları ve uzaktan kumanda API çağrılarını listeler.
 
 ---
 
