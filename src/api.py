@@ -263,8 +263,7 @@ def get_system_status():
     # 2. ClickHouse Status
     clickhouse_status = "OFFLINE"
     try:
-        import clickhouse_connect
-        client = clickhouse_connect.get_client(host='localhost', port=8123, username='default', password='')
+        client = get_clickhouse_client()
         client.ping()
         clickhouse_status = "ONLINE"
     except Exception:
