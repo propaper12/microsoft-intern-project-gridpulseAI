@@ -54,13 +54,14 @@ def cosine_similarity(v1, v2):
 def find_relevant_rules(query, top_k=2):
     """
     Searches the local SQLite database for the most relevant document chunks
-    matching the query using cosine similarity on text embeddings.
+    matching the query using hybrid cosine similarity and keyword boosting.
     """
     if not os.path.exists(DB_PATH):
         print(f"Error: Database file not found at {DB_PATH}. Run initialize_kb.py first.")
         return []
         
     query_vector = get_embedding(query)
+    query_lower = query.lower()
     
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -72,16 +73,38 @@ def find_relevant_rules(query, top_k=2):
     for title, content, embedding_json in rows:
         try:
             doc_vector = json.loads(embedding_json)
-            score = cosine_similarity(query_vector, doc_vector)
+            cosine = cosine_similarity(query_vector, doc_vector)
+            
+            # --- HYBRID RERANKING / KEYWORD BOOST ---
+            # If the user query contains exact terms from the document title or specific rule numbers (e.g. 101, 103, ev)
+            boost = 0.0
+            title_lower = title.lower()
+            
+            # Extract rule number (e.g. '101' in 'Rule 101')
+            words_query = query_lower.split()
+            for word in words_query:
+                # Clean punctuation
+                cleaned_word = "".join(ch for ch in word if ch.isalnum())
+                if cleaned_word and len(cleaned_word) >= 3:
+                    if cleaned_word in title_lower or (cleaned_word in content.lower() and cleaned_word in VOCABULARY):
+                        boost += 0.08 # Add 8% boost per matched core keyword
+            
+            # Caps the maximum boost at 25% (0.25)
+            boost = min(0.25, boost)
+            final_score = cosine + boost
+            final_score = min(1.0, final_score)
+            
             scored_results.append({
                 "title": title,
                 "content": content,
-                "score": score
+                "score": final_score,
+                "cosine_score": cosine,
+                "boost_score": boost
             })
         except Exception as e:
             print(f"Error parsing embedding for {title}: {e}")
             
-    # Sort by similarity score descending
+    # Sort by final score descending
     scored_results.sort(key=lambda x: x["score"], reverse=True)
     
     # Return top K results
