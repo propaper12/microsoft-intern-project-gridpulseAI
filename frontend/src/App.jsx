@@ -3603,6 +3603,54 @@ function App() {
                     </div>
                   </div>
 
+                  {/* Hazır Soru ve RAG Test Senaryoları */}
+                  <div className="panel" style={{ padding: '20px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div className="panel-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+                      <h3 style={{ fontSize: '12px', color: 'var(--cyan)', fontWeight: 'bold' }}>📋 {lang === 'TR' ? 'HAZIR RAG SORGULARI (DEMO)' : 'QUICK RAG PROMPTS (DEMO)'}</h3>
+                    </div>
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                      {lang === 'TR' ? 'Yapay zekanın SQLite vektör bankasından kuralları okumasını test etmek için aşağıdaki senaryolara tıklayın:' : 'Click any scenario below to trigger immediate vector retrieval and grounded AI generation:'}
+                    </span>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleChatSubmit(lang === 'TR' ? "Trafo aşırı yüklenme protokolü kuralı nedir?" : "What is the transformer overload protocol rule?")}
+                        style={{ background: 'rgba(2, 132, 199, 0.05)', color: 'var(--cyan)', border: '1px solid rgba(2, 132, 199, 0.15)', borderRadius: '6px', padding: '6px 10px', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'left' }}
+                      >
+                        ⚡ {lang === 'TR' ? 'Trafo Aşırı Yük Kuralı (Rule 101)' : 'Transformer Overload Rule (Rule 101)'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleChatSubmit(lang === 'TR' ? "EV şarj cihazı sıcaklık koruma limiti nedir?" : "What is the thermal protection limit for EV chargers?")}
+                        style={{ background: 'rgba(2, 132, 199, 0.05)', color: 'var(--cyan)', border: '1px solid rgba(2, 132, 199, 0.15)', borderRadius: '6px', padding: '6px 10px', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'left' }}
+                      >
+                        🔥 {lang === 'TR' ? 'Şarj Cihazı Sıcaklık Sınırı (Rule 103)' : 'EV Charger Thermal Limit (Rule 103)'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleChatSubmit(lang === 'TR' ? "Voltaj düşüşü limitleri ve faz dengesi kuralı" : "What is the standard voltage drop limit rule?")}
+                        style={{ background: 'rgba(2, 132, 199, 0.05)', color: 'var(--cyan)', border: '1px solid rgba(2, 132, 199, 0.15)', borderRadius: '6px', padding: '6px 10px', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'left' }}
+                      >
+                        🔌 {lang === 'TR' ? 'Voltaj & Faz Dengesi Sınırı (Rule 102)' : 'Voltage & Phase Balance Limit (Rule 102)'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleChatSubmit(lang === 'TR' ? "Siber saldırı veya sayaç kurcalama kuralı nedir?" : "What is the smartmeter tampering rule?")}
+                        style={{ background: 'rgba(2, 132, 199, 0.05)', color: 'var(--cyan)', border: '1px solid rgba(2, 132, 199, 0.15)', borderRadius: '6px', padding: '6px 10px', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'left' }}
+                      >
+                        🛡️ {lang === 'TR' ? 'Sayaç Siber Güvenlik Kuralı (Rule 110)' : 'SmartMeter Cyber Rule (Rule 110)'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleChatSubmit(lang === 'TR' ? "Karbon yoğunluğu yüksekken yeşil güç yönlendirmesi kuralı" : "What should operators do when carbon intensity is high?")}
+                        style={{ background: 'rgba(2, 132, 199, 0.05)', color: 'var(--cyan)', border: '1px solid rgba(2, 132, 199, 0.15)', borderRadius: '6px', padding: '6px 10px', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'left' }}
+                      >
+                        🍃 {lang === 'TR' ? 'Yeşil Güç Karbon Kuralı (Rule 104)' : 'Green Power Carbon Rule (Rule 104)'}
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Quick AI Diagnostics Button */}
                   <div className="panel" style={{ padding: '20px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <div className="panel-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
