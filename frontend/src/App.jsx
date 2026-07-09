@@ -4031,28 +4031,98 @@ function App() {
                 </div>
                 {selectedRagDetails.graph_context && selectedRagDetails.graph_context.triplets && selectedRagDetails.graph_context.triplets.length > 0 ? (
                   <div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px' }}>
-                      {selectedRagDetails.graph_context.triplets.map((triplet, idx) => (
-                        <div key={idx} style={{ 
-                          fontFamily: 'JetBrains Mono', 
-                          fontSize: '9.5px', 
-                          background: 'rgba(0,0,0,0.15)', 
-                          border: '1px solid rgba(255,255,255,0.03)', 
-                          borderRadius: '4px', 
-                          padding: '6px 10px', 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'space-between',
-                          color: '#cbd5e1'
-                        }}>
-                          <span style={{ color: '#6ee7b7' }}>({triplet.source})</span>
-                          <span style={{ color: '#94a3b8', fontSize: '8px', borderBottom: '1px dashed rgba(255,255,255,0.2)', paddingBottom: '2px' }}>
-                            --[{triplet.relation}]--&gt;
-                          </span>
-                          <span style={{ color: '#a78bfa' }}>({triplet.target})</span>
+                    {/* SVG Knowledge Graph Visualizer */}
+                    {(() => {
+                      const triplets = selectedRagDetails.graph_context.triplets;
+                      const uniqueNodes = Array.from(new Set(
+                        triplets.flatMap(t => [t.source, t.target])
+                      ));
+                      
+                      const getNodeCoords = (name) => {
+                        if (name.startsWith('Rule')) return { x: 260, y: 45, color: '#a78bfa', labelColor: '#c084fc' };
+                        if (name.includes('TRAFO') || name.includes('CHARGER') || name.includes('METER')) return { x: 150, y: 25, color: '#38bdf8', labelColor: '#7dd3fc' };
+                        if (['Wembley', 'Wimbledon', 'Stratford', 'Chelsea', 'Camden', 'Greenwich', 'Westminster', 'Brixton', 'Hackney'].includes(name)) return { x: 40, y: 25, color: '#10b981', labelColor: '#6ee7b7' };
+                        if (['CRITICAL_OVERLOAD', 'OVERHEATING', 'VOLTAGE_DROP', 'Transformer', 'EVCharger', 'SmartMeter'].includes(name)) return { x: 150, y: 110, color: '#fb7185', labelColor: '#fda4af' };
+                        return { x: 150, y: 70, color: '#cbd5e1', labelColor: '#cbd5e1' };
+                      };
+                      
+                      const nodePositions = {};
+                      const offsets = {};
+                      
+                      uniqueNodes.forEach(node => {
+                        const base = getNodeCoords(node);
+                        const key = `${base.x}-${base.y}`;
+                        if (!offsets[key]) offsets[key] = 0;
+                        
+                        nodePositions[node] = {
+                          x: base.x,
+                          y: base.y + (offsets[key] * 32),
+                          color: base.color,
+                          labelColor: base.labelColor
+                        };
+                        offsets[key] += 1;
+                      });
+
+                      // Determine height based on maximum offset
+                      const maxHeight = Math.max(120, ...Object.values(offsets).map(o => o * 32 + 20));
+
+                      return (
+                        <div style={{ background: 'rgba(15,23,42,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '6px', padding: '10px', marginTop: '10px' }}>
+                          <svg width="100%" height={maxHeight} style={{ overflow: 'visible' }}>
+                            {/* Render relationship links */}
+                            {triplets.map((t, idx) => {
+                              const start = nodePositions[t.source];
+                              const end = nodePositions[t.target];
+                              if (!start || !end) return null;
+                              return (
+                                <g key={`edge-${idx}`}>
+                                  <line 
+                                    x1={start.x} y1={start.y} 
+                                    x2={end.x} y2={end.y} 
+                                    stroke={start.color} 
+                                    strokeWidth="1.2" 
+                                    strokeDasharray="4 3"
+                                    style={{ opacity: 0.6 }}
+                                  />
+                                  <text 
+                                    x={(start.x + end.x) / 2} 
+                                    y={(start.y + end.y) / 2 - 3} 
+                                    fill="#94a3b8" 
+                                    fontSize="7px" 
+                                    fontFamily="JetBrains Mono" 
+                                    textAnchor="middle"
+                                    style={{ textShadow: '0 0 4px #000' }}
+                                  >
+                                    {t.relation}
+                                  </text>
+                                </g>
+                              );
+                            })}
+
+                            {/* Render Düğümler */}
+                            {Object.entries(nodePositions).map(([name, pos], idx) => (
+                              <g key={`node-${idx}`}>
+                                <circle cx={pos.x} cy={pos.y} r="8" fill="none" stroke={pos.color} strokeWidth="1" style={{ opacity: 0.3 }} />
+                                <circle cx={pos.x} cy={pos.y} r="4" fill={pos.color} />
+                                <text 
+                                  x={pos.x} 
+                                  y={pos.y - 10} 
+                                  fill={pos.labelColor} 
+                                  fontSize="8px" 
+                                  fontWeight="bold"
+                                  fontFamily="JetBrains Mono" 
+                                  textAnchor="middle"
+                                  style={{ textShadow: '0 0 6px rgba(0,0,0,0.9)' }}
+                                >
+                                  {name}
+                                </text>
+                              </g>
+                            ))}
+                          </svg>
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })()}
+                    
                     <div style={{ fontSize: '8.5px', color: '#94a3b8', marginTop: '8px', fontFamily: 'sans-serif', fontStyle: 'italic' }}>
                       🔗 Multi-hop semantic links resolved. Triplets were successfully injected into the LLM system prompt for relational reasoning.
                     </div>
@@ -4162,6 +4232,17 @@ function App() {
                       <span>📊 Total Tokens Processed: </span>
                       <strong style={{ color: '#34d399' }}>{selectedRagDetails.metrics.token_stats?.total_tokens || 0} tokens</strong>
                     </div>
+                    {selectedRagDetails.metrics.groundedness_score !== undefined && (
+                      <div style={{ gridColumn: 'span 2', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '6px', marginTop: '2px', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>🎯 Groundedness (Faithfulness) Score:</span>
+                        <strong style={{ 
+                          color: selectedRagDetails.metrics.groundedness_score >= 90 ? '#10b981' : '#fbbf24',
+                          textShadow: selectedRagDetails.metrics.groundedness_score >= 90 ? '0 0 8px rgba(16,185,129,0.4)' : '0 0 8px rgba(251,191,36,0.4)'
+                        }}>
+                          {selectedRagDetails.metrics.groundedness_score}%
+                        </strong>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
