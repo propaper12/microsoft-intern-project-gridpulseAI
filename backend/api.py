@@ -26,7 +26,17 @@ app.add_middleware(
 REDPANDA_BROKERS = ['localhost:9092']
 ALERTS_TOPIC = 'bot_alerts'
 
+def is_port_open(host: str, port: int) -> bool:
+    import socket
+    try:
+        with socket.create_connection((host, port), timeout=0.15):
+            return True
+    except Exception:
+        return False
+
 def get_kafka_consumer():
+    if not is_port_open('localhost', 9092):
+        raise Exception("Kafka port 9092 is closed. Skipping bootstrap block.")
     return KafkaConsumer(
         ALERTS_TOPIC,
         bootstrap_servers=REDPANDA_BROKERS,
@@ -38,16 +48,44 @@ def get_clickhouse_client():
     return clickhouse_connect.get_client(host='localhost', port=8123, username='default', password='root')
 
 async def event_generator():
-    consumer = get_kafka_consumer()
+    consumer = None
     try:
-        while True:
-            records = consumer.poll(timeout_ms=1000)
-            for topic_partition, messages in records.items():
-                for message in messages:
-                    yield f"data: {message.value}\n\n"
-            await asyncio.sleep(0.5)
+        consumer = get_kafka_consumer()
+    except Exception as e:
+        print("Kafka connection timeout on startup, using simulated SSE stream.", e)
+        
+    try:
+        if consumer:
+            while True:
+                records = consumer.poll(timeout_ms=1000)
+                for topic_partition, messages in records.items():
+                    for message in messages:
+                        yield f"data: {message.value}\n\n"
+                await asyncio.sleep(0.5)
+        else:
+            # Safe simulated SSE fallback for offline developers/mülakatçılar
+            import random
+            devices = ["TRAFO_301", "TRAFO_302", "CHARGER_201", "CHARGER_203", "METER_101", "METER_103"]
+            cities = ["Wembley", "Wimbledon", "Greenwich", "Hackney", "Westminster", "Camden"]
+            reasons = ["OVERHEATING", "CRITICAL_OVERLOAD", "VOLTAGE_DROP"]
+            while True:
+                device = random.choice(devices)
+                city = random.choice(cities)
+                reason = random.choice(reasons)
+                val = {
+                    "device": device,
+                    "city": city,
+                    "reason": reason,
+                    "truth_score": random.randint(10, 48),
+                    "fact_check_result": f"Diagnostics: {device} verified offline via local simulation."
+                }
+                yield f"data: {json.dumps(val)}\n\n"
+                await asyncio.sleep(5.0)
     except asyncio.CancelledError:
-        consumer.close()
+        if consumer:
+            consumer.close()
+    except Exception as e:
+        print("SSE stream encountered an error:", e)
 
 @app.get("/api/stream")
 async def stream_fraud_alerts():
@@ -262,24 +300,16 @@ def get_system_status():
         
     # 2. ClickHouse Status
     clickhouse_status = "OFFLINE"
-    try:
-        client = get_clickhouse_client()
-        client.ping()
-        clickhouse_status = "ONLINE"
-    except Exception:
-        pass
+    if is_port_open('localhost', 8123):
+        try:
+            client = get_clickhouse_client()
+            client.ping()
+            clickhouse_status = "ONLINE"
+        except Exception:
+            pass
         
     # 3. Redpanda Status
-    redpanda_status = "OFFLINE"
-    try:
-        import socket
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(0.5)
-        s.connect(('localhost', 9092))
-        s.close()
-        redpanda_status = "ONLINE"
-    except Exception:
-        pass
+    redpanda_status = "ONLINE" if is_port_open('localhost', 9092) else "OFFLINE"
         
     gemini_status = "ONLINE" if os.environ.get("GEMINI_API_KEY") else "OFFLINE"
         
