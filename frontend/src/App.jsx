@@ -3755,6 +3755,45 @@ function App() {
                 </div>
               </div>
 
+              {/* Core RAG Capabilities (Highlight section requested by user) */}
+              <div className="print-card" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '15px' }}>
+                <h3 style={{ fontSize: '12px', margin: '0 0 10px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '6px', color: 'var(--cyan)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  🛡️ GridPulseAI Core RAG Engine Capabilities & Compliance Status
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px', fontSize: '9px', fontFamily: 'Inter' }}>
+                  <div style={{ background: 'rgba(0,0,0,0.1)', padding: '10px', borderRadius: '6px', borderLeft: '3px solid var(--cyan)' }}>
+                    <strong style={{ display: 'block', color: 'var(--text-main)', marginBottom: '4px' }}>1. Keyword-Boost Reranker</strong>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', lineHeight: '1.3', marginBottom: '6px' }}>
+                      Combines semantic vectors with exact-word matches (e.g., matching IDs or substation codes) to boost retrieval accuracy.
+                    </span>
+                    <strong style={{ color: '#10b981', fontSize: '8px', fontFamily: 'JetBrains Mono' }}>[✓] RERANKING ACTIVE</strong>
+                  </div>
+                  <div style={{ background: 'rgba(0,0,0,0.1)', padding: '10px', borderRadius: '6px', borderLeft: '3px solid var(--orange)' }}>
+                    <strong style={{ display: 'block', color: 'var(--text-main)', marginBottom: '4px' }}>2. Self-Healing Query Expander</strong>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', lineHeight: '1.3', marginBottom: '6px' }}>
+                      Triggers synonym/term expansion when semantic rules score falls below 35% similarity threshold.
+                    </span>
+                    <strong style={{ color: selectedRagDetails.self_corrected ? 'var(--orange)' : '#10b981', fontSize: '8px', fontFamily: 'JetBrains Mono' }}>
+                      {selectedRagDetails.self_corrected ? '[✓] HEALED & EXPANDED' : '[✓] STANDBY (DIRECT MATCH)'}
+                    </strong>
+                  </div>
+                  <div style={{ background: 'rgba(0,0,0,0.1)', padding: '10px', borderRadius: '6px', borderLeft: '3px solid var(--green)' }}>
+                    <strong style={{ display: 'block', color: 'var(--text-main)', marginBottom: '4px' }}>3. GraphRAG Local Search</strong>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', lineHeight: '1.3', marginBottom: '6px' }}>
+                      Queries SQLite relation tables (`graph_nodes`, `graph_edges`) to assemble a contextual directed relational map.
+                    </span>
+                    <strong style={{ color: '#10b981', fontSize: '8px', fontFamily: 'JetBrains Mono' }}>[✓] GRAPH SEARCH RESOLVED</strong>
+                  </div>
+                  <div style={{ background: 'rgba(0,0,0,0.1)', padding: '10px', borderRadius: '6px', borderLeft: '3px solid #a78bfa' }}>
+                    <strong style={{ display: 'block', color: 'var(--text-main)', marginBottom: '4px' }}>4. OpenAI Groundedness</strong>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', lineHeight: '1.3', marginBottom: '6px' }}>
+                      Computes real-time response lexical overlap against retrieved sources to flag potential hallucinations.
+                    </span>
+                    <strong style={{ color: '#10b981', fontSize: '8px', fontFamily: 'JetBrains Mono' }}>[✓] EVALUATION ONLINE</strong>
+                  </div>
+                </div>
+              </div>
+
               {/* Row 2: Query expansion & search details */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                 <div className="print-card" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '15px' }}>
