@@ -256,7 +256,7 @@ function App() {
   const handleVectorize = async (text) => {
     if (!text.trim()) return;
     try {
-      const res = await fetch('http://localhost:8000/api/vectorize', {
+      const res = await fetch('/api/vectorize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text })
@@ -274,7 +274,7 @@ function App() {
     if (!compareTextA.trim() || !compareTextB.trim()) return;
     setCompareLoading(true);
     try {
-      const res = await fetch('http://localhost:8000/api/vector_compare', {
+      const res = await fetch('/api/vector_compare', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text_a: compareTextA, text_b: compareTextB })
@@ -293,7 +293,7 @@ function App() {
   const handleVectorSearch = async () => {
     if (!vectorSearchQuery.trim()) return;
     try {
-      const res = await fetch(`http://localhost:8000/api/search?query=${encodeURIComponent(vectorSearchQuery)}`);
+      const res = await fetch(`/api/search?query=${encodeURIComponent(vectorSearchQuery)}`);
       const data = await res.json();
       if (Array.isArray(data)) {
         setSearchResults(data);
@@ -306,7 +306,7 @@ function App() {
   useEffect(() => {
     const fetchRules = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/rules');
+        const response = await fetch('/api/rules');
         const data = await response.json();
         if (Array.isArray(data)) {
           setDbRules(data);
@@ -321,7 +321,7 @@ function App() {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/status');
+        const res = await fetch('/api/status');
         const data = await res.json();
         if (data && data.sqlite_rag) {
           setSystemStatus(data);
@@ -381,7 +381,7 @@ function App() {
     setChatMessages((prev) => [...prev, userMsg]);
 
     try {
-      const response = await fetch('http://localhost:8000/api/copilot', {
+      const response = await fetch('/api/copilot', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -622,7 +622,7 @@ function App() {
     };
 
     // Live Stream
-    const eventSource = new EventSource('http://localhost:8000/api/stream');
+    const eventSource = new EventSource('/api/stream');
     eventSource.onmessage = (event) => {
       isConnected = true;
       stopSimulation();
@@ -665,10 +665,10 @@ function App() {
     const fetchAnalytics = async () => {
       try {
         const [cityRes, truthRes, timeRes, breakRes] = await Promise.all([
-          axios.get('http://localhost:8000/api/stats/top-cities'),
-          axios.get('http://localhost:8000/api/stats/truth-score'),
-          axios.get('http://localhost:8000/api/stats/timeline'),
-          axios.get('http://localhost:8000/api/stats/fact-check-breakdown')
+          axios.get('/api/stats/top-cities'),
+          axios.get('/api/stats/truth-score'),
+          axios.get('/api/stats/timeline'),
+          axios.get('/api/stats/fact-check-breakdown')
         ]);
         
         if (cityRes.data?.data && cityRes.data.data.length > 0) setTopCities(cityRes.data.data);
