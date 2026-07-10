@@ -427,44 +427,69 @@ async def copilot_query(payload: dict):
         
     sqlite_latency_ms = round((time.time() - t_sqlite_start) * 1000, 2)
     
-    # 3. Fetch active anomalies from ClickHouse
+    # 3. Fetch active anomalies dynamically from ClickHouse based on device/city keywords
     t_ch_start = time.time()
     active_anomalies_list = []
+    
+    # Resolve target device or city dynamically from the query
+    target_device = None
+    devices_list = ["TRAFO_301", "TRAFO_302", "CHARGER_11", "CHARGER_12", "METER_101", "METER_102", "METER_103", "METER_104"]
+    for d in devices_list:
+        if d in user_query.upper():
+            target_device = d
+            break
+            
+    target_city = None
+    cities_list = ["westminster", "islington", "london"]
+    for c in cities_list:
+        if c in user_query.lower():
+            target_city = c.capitalize()
+            break
+
+    target_alarm = None
+    for alarm in ["overload", "voltage", "temperature", "overheating", "siber", "saldırı"]:
+        if alarm in user_query.lower():
+            target_alarm = alarm.capitalize()
+            break
+
+    # Construct dynamic ClickHouse SQL query
+    ch_query = "SELECT account_id, city, reason, truth_score, fact_check_result, post_text, device FROM bot_alerts "
+    conditions = []
+    if target_device:
+        conditions.append(f"account_id = '{target_device}'")
+    if target_city:
+        conditions.append(f"city = '{target_city}'")
+    if target_alarm:
+        conditions.append(f"reason LIKE '%{target_alarm}%'")
+        
+    if conditions:
+        ch_query += " WHERE " + " AND ".join(conditions)
+    ch_query += " ORDER BY timestamp DESC LIMIT 5"
+    
     try:
         client = get_clickhouse_client()
-        result = client.query("SELECT device, city, reason, truth_score, fact_check_result FROM bot_alerts WHERE truth_score < 50 ORDER BY timestamp DESC LIMIT 3")
+        result = client.query(ch_query)
         for r in result.result_set:
+            # Reconstruct post_text context if it represents raw telemetry readings
             active_anomalies_list.append({
-                "device": r[0],
+                "device_id": r[0],
                 "city": r[1],
                 "reason": r[2],
                 "stability_score": r[3],
-                "diagnostics": r[4]
+                "diagnostics": f"{r[4]} | Telemetry: {r[5]}",
+                "device": r[6]
             })
     except Exception as e:
-        print("Failed to fetch anomalies from ClickHouse:", e)
+        print("Failed to fetch anomalies dynamically from ClickHouse:", e)
+        
     ch_latency_ms = round((time.time() - t_ch_start) * 1000, 2)
 
     # 3.5. Microsoft GraphRAG Style Entity-Relation Sub-Graph Extraction
     from backend.graph_rag import graph_store
-    target_device = None
-    target_city = None
-    target_alarm = None
     
-    # Check if user query matches any known graph nodes
-    for d in graph_store.nodes["devices"]:
-        if d.lower() in user_query.lower():
-            target_device = d
-    for c in graph_store.nodes["substations"]:
-        if c.lower() in user_query.lower():
-            target_city = c
-    for a in graph_store.nodes["alarms"]:
-        if a.lower() in user_query.lower():
-            target_alarm = a
-            
     # Fallback to the first active anomaly details if query mentions nothing specific
     if not target_device and active_anomalies_list:
-        target_device = active_anomalies_list[0]["device"]
+        target_device = active_anomalies_list[0]["device_id"]
         target_city = active_anomalies_list[0]["city"]
         target_alarm = active_anomalies_list[0]["reason"]
         
