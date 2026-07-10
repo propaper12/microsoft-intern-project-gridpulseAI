@@ -78,7 +78,8 @@ const TRANSLATIONS = {
     copilot_prompt_1: "Şu an şebeke kararlılığı ne durumda?",
     copilot_prompt_2: "Isınma alarmları için ne yapmalıyım?",
     copilot_prompt_3: "Hangi trafolar aşırı yüklü?",
-    tab_geo_map: "Coğrafi Analiz"
+    tab_geo_map: "Coğrafi Analiz",
+    tab_welcome: "Anasayfa"
   },
   EN: {
     title: "GRIDPULSE.AI - REAL-TIME IOT GRID MONITOR",
@@ -133,7 +134,8 @@ const TRANSLATIONS = {
     copilot_prompt_1: "What is the current grid stability?",
     copilot_prompt_2: "What action is needed for overheating alerts?",
     copilot_prompt_3: "Which transformers are overloaded?",
-    tab_geo_map: "Geo-SCADA Map"
+    tab_geo_map: "Geo-SCADA Map",
+    tab_welcome: "Overview"
   }
 };
 
@@ -222,7 +224,7 @@ function App() {
   const [revertedCount, setRevertedCount] = useState(0);
   const [sensitivity, setSensitivity] = useState('MID');
   const [lastAction, setLastAction] = useState('-');
-  const [activeTab, setActiveTab] = useState('analytics');
+  const [activeTab, setActiveTab] = useState('welcome');
   const [darkMode, setDarkMode] = useState(false);
   const [timeframe, setTimeframe] = useState('LIVE');
   const [searchQuery, setSearchQuery] = useState('');
@@ -919,6 +921,10 @@ function App() {
         </div>
         
         <nav className="sidebar-nav">
+          <a href="#" className={`nav-item ${activeTab === 'welcome' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveTab('welcome'); }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span>{TRANSLATIONS[lang].tab_welcome}</span>
+          </a>
           <a href="#" className={`nav-item ${activeTab === 'analytics' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveTab('analytics'); }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
             <span>{TRANSLATIONS[lang].tab_dashboard}</span>
@@ -1072,6 +1078,126 @@ function App() {
 
         {/* Content Container */}
         <div className="content">
+          {activeTab === 'welcome' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', position: 'relative' }}>
+              {/* Animated Grid lines in the background */}
+              <div className="grid-background" />
+
+              {/* Hero Section */}
+              <div className="welcome-hero" style={{ zIndex: 1 }}>
+                <div style={{ maxWidth: '600px' }}>
+                  <span style={{ fontSize: '10px', background: 'rgba(56, 189, 248, 0.2)', color: 'var(--cyan)', padding: '4px 8px', borderRadius: '4px', fontFamily: 'JetBrains Mono', fontWeight: 'bold', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                    🚀 {lang === 'TR' ? 'YENİ NESİL SCADA UYUMLULUK PLATFORMU' : 'NEXT-GEN SCADA COMPLIANCE PLATFORM'}
+                  </span>
+                  <h1 className="shiny-text" style={{ fontSize: '28px', margin: '15px 0 10px 0', fontFamily: 'Rajdhani', fontWeight: '800', lineHeight: '1.2' }}>
+                    GridPulseAI - Explainable SCADA & GraphRAG Controller
+                  </h1>
+                  <p style={{ fontSize: '12.5px', color: '#cbd5e1', lineHeight: '1.6', margin: '0 0 20px 0' }}>
+                    {lang === 'TR' 
+                      ? 'GridPulseAI; kritik enerji şebekesi SCADA sensörlerini, dağıtım trafolarını ve şarj istasyonlarını canlı olarak takip eden yapay zeka destekli bir güvenlik ve operasyon platformudur. Vektör aramayı, SQLite yerel bilgi grafikleriyle (GraphRAG) zenginleştirerek dil modellerinin SCADA kurallarında halüsinasyon görmesini %100 engeller.' 
+                      : 'GridPulseAI is an AI-powered security and compliance hub monitoring live energy grid sensors, transformers, and charger networks. By augmenting LLM vector lookups with local SQLite relational maps (GraphRAG), it completely eliminates hallucinated SCADA procedures.'}
+                  </p>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button 
+                      onClick={() => setActiveTab('ai_brain')}
+                      style={{ background: 'var(--cyan)', color: '#fff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 15px rgba(2, 132, 199, 0.4)' }}
+                    >
+                      💬 {lang === 'TR' ? 'Yapay Zeka Beyniyle Konuş' : 'Consult AI Copilot'}
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('analytics')}
+                      style={{ background: 'rgba(255,255,255,0.07)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', padding: '8px 18px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}
+                    >
+                      📊 {lang === 'TR' ? 'Operasyon Paneline Git' : 'Open SCADA Panel'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Interactive Pipeline Flow */}
+              <div className="glass-panel" style={{ padding: '20px', borderRadius: '8px', zIndex: 1 }}>
+                <h3 style={{ fontSize: '12px', margin: '0 0 15px 0', borderBottom: '1px solid var(--border-color)', paddingBottom: '6px', color: 'var(--text-main)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  ⚙️ {lang === 'TR' ? 'GridPulseAI Gerçek Zamanlı Telemetri & Yapay Zeka Akış Şeması' : 'GridPulseAI Real-Time Telemetry & AI Pipeline'}
+                </h3>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', overflowX: 'auto', padding: '10px 0' }}>
+                  <div style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '10px', textAlign: 'center', minWidth: '100px' }}>
+                    <strong style={{ display: 'block', fontSize: '10px', color: 'var(--cyan)' }}>1. SCADA IoT</strong>
+                    <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>{lang === 'TR' ? 'Sensör Verileri' : 'Sensor Telemetry'}</span>
+                  </div>
+                  <div className="flow-line" />
+                  <div style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '10px', textAlign: 'center', minWidth: '100px' }}>
+                    <strong style={{ display: 'block', fontSize: '10px', color: 'var(--orange)' }}>2. Redpanda</strong>
+                    <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>{lang === 'TR' ? 'Kafka Kuyruğu' : 'Kafka Queue'}</span>
+                  </div>
+                  <div className="flow-line" />
+                  <div style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '10px', textAlign: 'center', minWidth: '100px' }}>
+                    <strong style={{ display: 'block', fontSize: '10px', color: 'var(--red)' }}>3. ML Engine</strong>
+                    <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>{lang === 'TR' ? 'XAI & Anomali' : 'XAI Anomalies'}</span>
+                  </div>
+                  <div className="flow-line" />
+                  <div style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '10px', textAlign: 'center', minWidth: '100px' }}>
+                    <strong style={{ display: 'block', fontSize: '10px', color: 'var(--cyan)' }}>4. ClickHouse</strong>
+                    <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>{lang === 'TR' ? 'OLAP Loglama' : 'OLAP Analytics'}</span>
+                  </div>
+                  <div className="flow-line" />
+                  <div style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '10px', textAlign: 'center', minWidth: '100px' }}>
+                    <strong style={{ display: 'block', fontSize: '10px', color: '#a78bfa' }}>5. GraphRAG</strong>
+                    <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>{lang === 'TR' ? 'SQLite Bilgi Ağacı' : 'Knowledge Graph'}</span>
+                  </div>
+                  <div className="flow-line" />
+                  <div style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '10px', textAlign: 'center', minWidth: '100px' }}>
+                    <strong style={{ display: 'block', fontSize: '10px', color: 'var(--green)' }}>6. AI Copilot</strong>
+                    <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>{lang === 'TR' ? 'LLM Danışmanı' : 'LLM Controller'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Detailed Capability Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', zIndex: 1 }}>
+                <div className="glass-panel" style={{ padding: '15px 20px', borderRadius: '8px' }}>
+                  <strong style={{ color: 'var(--cyan)', fontSize: '11px', display: 'block', marginBottom: '6px', fontFamily: 'JetBrains Mono' }}>
+                    🛡️ GRAPH-AUGMENTED GENERATION (GraphRAG)
+                  </strong>
+                  <p style={{ fontSize: '10px', color: 'var(--text-muted)', lineHeight: '1.4', margin: 0 }}>
+                    {lang === 'TR' 
+                      ? 'Arayüzden yapay zekaya sorduğunuz her komut, önce SQLite veritabanındaki şebeke kuralları ve cihaz ilişkileriyle GraphRAG mantığına göre taranır. Sistem, ilgili düğümleri (örneğin TRAFO_301 -> IS_LOCATED_IN -> Westminster) vektör aramasıyla bulup LLM promptuna ekler. Bu sayede yapay zeka uydurma kurallar yazamaz.'
+                      : 'Every command sent to the AI Copilot is contextually resolved via our local SQLite graph database before reaching the LLM. By injecting multi-hop relations (e.g., TRAFO_301 -> IS_LOCATED_IN -> Westminster) directly into the context window, hallucinated guidelines are avoided.'}
+                  </p>
+                </div>
+                <div className="glass-panel" style={{ padding: '15px 20px', borderRadius: '8px' }}>
+                  <strong style={{ color: 'var(--orange)', fontSize: '11px', display: 'block', marginBottom: '6px', fontFamily: 'JetBrains Mono' }}>
+                    🧠 EXPLAINABLE AI (XAI) & SHAP VALUE METRICS
+                  </strong>
+                  <p style={{ fontSize: '10px', color: 'var(--text-muted)', lineHeight: '1.4', margin: 0 }}>
+                    {lang === 'TR' 
+                      ? 'Makine öğrenimi modellerimiz sadece şebekede anomali tespit etmekle kalmaz; SHAP algoritması yardımıyla arızanın neden kaynaklandığını (Yük Aşımı %72, Isınma %18, Voltaj Düşüşü %10) matematiksel ağırlıklarla açıklar. Bu sayede operatör, hatanın kök sebebini saniyeler içinde teşhis eder.'
+                      : 'Our machine learning models do not just flag grid anomalies; they explain them. Using Shapley additive explanations (SHAP), they calculate feature contribution metrics (e.g., Grid Load 72%, Overheating 18%, Voltage Delta 10%) so SCADA operators instantly diagnose the root cause.'}
+                  </p>
+                </div>
+                <div className="glass-panel" style={{ padding: '15px 20px', borderRadius: '8px' }}>
+                  <strong style={{ color: 'var(--green)', fontSize: '11px', display: 'block', marginBottom: '6px', fontFamily: 'JetBrains Mono' }}>
+                    🔄 CONTINUOUS ONLINE MACHINE LEARNING
+                  </strong>
+                  <p style={{ fontSize: '10px', color: 'var(--text-muted)', lineHeight: '1.4', margin: 0 }}>
+                    {lang === 'TR' 
+                      ? 'Şebeke tüketimleri mevsimsel veya günlük olarak değiştikçe, modelimiz statik kurallara sıkışıp kalmaz. Gelen her 20 nominal şebeke telemetrisinde bir model kendini online olarak yeniden eğitir (online continuous learning), baz referans yük değerlerini otomatik günceller.'
+                      : 'As electricity baselines fluctuate seasonally or daily, our ML model prevents decay. It automatically triggers online retraining iterations every 20 nominal messages, dynamically recalibrating consumption, voltage, and temperature thresholds.'}
+                  </p>
+                </div>
+                <div className="glass-panel" style={{ padding: '15px 20px', borderRadius: '8px' }}>
+                  <strong style={{ color: 'var(--red)', fontSize: '11px', display: 'block', marginBottom: '6px', fontFamily: 'JetBrains Mono' }}>
+                    ⚡ CLOSED-LOOP SCADA MITIGATION OVERRIDES
+                  </strong>
+                  <p style={{ fontSize: '10px', color: 'var(--text-muted)', lineHeight: '1.4', margin: 0 }}>
+                    {lang === 'TR' 
+                      ? 'Teşhis edilen anomaliler için panel üzerinden tek tıkla şebekedeki trafolara ve şarj istasyonlarına müdahale edilebilir. Komutlar doğrudan simüle SCADA hattına iletilerek soğutma üniteleri açılır (Cooling), yük sınırlandırılır (Derate) veya faz dengelemesi (Phase Balance) tetiklenir.'
+                      : 'For diagnosed anomalies, operators can execute direct remote control command overrides. These signals feed directly into the simulated SCADA channel to trigger transformer fans (Cooling), curtail demand (Derating), or balancing transformers (Phase Balance).'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'analytics' && (
             <>
               <div className="content-header">

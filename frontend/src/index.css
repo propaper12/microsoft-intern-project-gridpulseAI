@@ -398,7 +398,13 @@ body {
   flex-direction: column;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.panel:hover {
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: 0 12px 40px rgba(56, 189, 248, 0.08);
 }
 
 .panel-header {
@@ -536,6 +542,129 @@ body {
   100% {
     box-shadow: 0 0 0 0 rgba(56, 189, 248, 0);
   }
+}
+
+/* --- Magic UI & Glassmorphism Premium CSS Extensions --- */
+.glass-panel {
+  background: var(--bg-panel) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel:hover {
+  border-color: rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 0 12px 40px rgba(56, 189, 248, 0.08) !important;
+}
+
+.grid-background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-size: 35px 35px;
+  background-image: 
+    linear-gradient(to right, rgba(56, 189, 248, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(56, 189, 248, 0.035) 1px, transparent 1px);
+  animation: gridMove 25s linear infinite;
+  opacity: 0.9;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes gridMove {
+  0% { background-position: 0 0; }
+  100% { background-position: 35px 35px; }
+}
+
+.welcome-hero {
+  position: relative;
+  background-image: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.95)), url('/grid_welcome_hero.png');
+  background-size: cover;
+  background-position: center;
+  border-radius: 12px;
+  padding: 45px;
+  border: 1px solid rgba(56, 189, 248, 0.25) !important;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  text-align: left;
+}
+
+.welcome-hero::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 80% 20%, rgba(56, 189, 248, 0.15), transparent 50%);
+  pointer-events: none;
+}
+
+.neon-glow-cyan {
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
+  border: 1px solid rgba(56, 189, 248, 0.4) !important;
+}
+
+.neon-glow-orange {
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.25);
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
+}
+
+.neon-glow-purple {
+  box-shadow: 0 0 15px rgba(167, 139, 250, 0.25);
+  border: 1px solid rgba(167, 139, 250, 0.4) !important;
+}
+
+/* Magic UI shiny text hover effect */
+.shiny-text {
+  background: linear-gradient(120deg, #f8fafc, #94a3b8, #38bdf8, #f8fafc);
+  background-size: 200% auto;
+  color: transparent !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  animation: shine 4s linear infinite;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+@keyframes shine {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+.card-security-bg {
+  background-image: linear-gradient(rgba(30, 41, 59, 0.8), rgba(30, 41, 59, 0.95)), url('/cyber_security_grid.png');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Interactive Pipeline Flow lines */
+.flow-line {
+  height: 2px;
+  background: linear-gradient(90deg, var(--cyan) 0%, rgba(56, 189, 248, 0.1) 100%);
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.flow-line::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50px;
+  width: 50px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, #38bdf8, transparent);
+  animation: pulseFlow 2s infinite linear;
+}
+
+@keyframes pulseFlow {
+  0% { left: -50px; }
+  100% { left: 100%; }
 }
 
 @media print {
