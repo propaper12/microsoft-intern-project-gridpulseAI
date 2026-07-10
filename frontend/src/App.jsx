@@ -231,6 +231,7 @@ function App() {
   const [ragTemp, setRagTemp] = useState(0.2);
   const [ragDepth, setRagDepth] = useState(2);
   const [selectedTraceIndex, setSelectedTraceIndex] = useState(null);
+  const [rightSidebarTab, setRightSidebarTab] = useState('trace');
   const [timeframe, setTimeframe] = useState('LIVE');
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -3771,158 +3772,307 @@ function App() {
                   </form>
                 </div>
 
-                {/* Sağ Sütun: LangSmith Observability Console */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {/* Sağ Sütun: LangSmith Observability Console / Scenarios tabbed panel */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                   
-                  {/* Configuration Settings */}
-                  <div className="panel" style={{ padding: '20px', textAlign: 'left' }}>
-                    <div className="panel-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', marginBottom: '12px' }}>
-                      <h3 style={{ fontSize: '12px', color: 'var(--cyan)', fontWeight: 'bold' }}>⚙️ RAG CONFIGURATION (PLAYGROUND)</h3>
-                    </div>
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '11px' }}>
-                      <div>
-                        <label style={{ display: 'block', marginBottom: '4px', color: 'var(--text-muted)', fontSize: '10px', textTransform: 'uppercase' }}>Active Model:</label>
-                        <select 
-                          value={ragModel} 
-                          onChange={(e) => setRagModel(e.target.value)}
-                          style={{ width: '100%', background: 'var(--bg-panel)', border: '1px solid var(--border-color)', color: '#fff', padding: '6px', borderRadius: '4px', fontSize: '11px' }}
-                        >
-                          <option value="Gemini 2.5 Flash">Gemini 2.5 Flash (Default)</option>
-                          <option value="GPT-4o (Simulated)">GPT-4o (Simulated)</option>
-                          <option value="Claude 3.5 Sonnet (Simulated)">Claude 3.5 Sonnet (Simulated)</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                          <label style={{ color: 'var(--text-muted)', fontSize: '10px', textTransform: 'uppercase' }}>Temperature:</label>
-                          <strong style={{ color: 'var(--cyan)' }}>{ragTemp}</strong>
-                        </div>
-                        <input 
-                          type="range" 
-                          min="0.0" 
-                          max="1.0" 
-                          step="0.1" 
-                          value={ragTemp} 
-                          onChange={(e) => setRagTemp(parseFloat(e.target.value))}
-                          style={{ width: '100%', accentColor: 'var(--cyan)' }} 
-                        />
-                      </div>
-
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                          <label style={{ color: 'var(--text-muted)', fontSize: '10px', textTransform: 'uppercase' }}>Graph Traversal Depth:</label>
-                          <strong style={{ color: '#a78bfa' }}>{ragDepth}-hop search</strong>
-                        </div>
-                        <input 
-                          type="range" 
-                          min="1" 
-                          max="3" 
-                          step="1" 
-                          value={ragDepth} 
-                          onChange={(e) => setRagDepth(parseInt(e.target.value))}
-                          style={{ width: '100%', accentColor: '#a78bfa' }} 
-                        />
-                      </div>
-                    </div>
+                  {/* Glass Tab Bar */}
+                  <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.02)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                    <button
+                      type="button"
+                      onClick={() => setRightSidebarTab('trace')}
+                      style={{
+                        flex: 1,
+                        background: rightSidebarTab === 'trace' ? 'var(--cyan)' : 'transparent',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '8px',
+                        borderRadius: '6px',
+                        fontSize: '11px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        boxShadow: rightSidebarTab === 'trace' ? '0 4px 10px rgba(56, 189, 248, 0.2)' : 'none'
+                      }}
+                    >
+                      🔍 {lang === 'TR' ? 'RAG İzleyici & Playground' : 'RAG Trace & Config'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRightSidebarTab('scenarios')}
+                      style={{
+                        flex: 1,
+                        background: rightSidebarTab === 'scenarios' ? 'var(--cyan)' : 'transparent',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '8px',
+                        borderRadius: '6px',
+                        fontSize: '11px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        boxShadow: rightSidebarTab === 'scenarios' ? '0 4px 10px rgba(56, 189, 248, 0.2)' : 'none'
+                      }}
+                    >
+                      📋 {lang === 'TR' ? 'Hazır Sorular & Raporlar' : 'Scenarios & Reports'}
+                    </button>
                   </div>
 
-                  {/* Execution Trace details */}
-                  {(() => {
-                    // Extract message text to build dynamic trace mock parameters
-                    const activeIdx = selectedTraceIndex !== null ? selectedTraceIndex : chatMessages.length - 1;
-                    const activeMsg = chatMessages[activeIdx] || { text: 'Default Diagnostics' };
-                    const isAi = activeMsg.sender === 'ai';
-                    const msgText = activeMsg.textKey ? (TRANSLATIONS[lang][activeMsg.textKey] || '') : (activeMsg.text || '');
-                    const cleanText = msgText.toLowerCase();
-                    
-                    let ruleTitle = "Rule 101: Transformer Overload Protocol";
-                    let matchScore = 94;
-                    let nodeRelations = "TRAFO_301 -> IS_LOCATED_IN -> Westminster";
-                    let graphEdge = "MITIGATES_LOAD_SHEDDING";
-                    let tokenCount = 764;
-                    let latency = 420;
-                    let faithfulness = 98.2;
-
-                    if (cleanText.includes('charger') || cleanText.includes('şarj')) {
-                      ruleTitle = "Rule 103: EV Charger Temperature limit";
-                      matchScore = 89;
-                      nodeRelations = "CHARGER_12 -> CONNECTED_TO -> TRAFO_301";
-                      graphEdge = "PROTECTED_BY_THERMAL_SHUTDOWN";
-                      latency = 510;
-                      faithfulness = 97.4;
-                    } else if (cleanText.includes('volt') || cleanText.includes('gerilim')) {
-                      ruleTitle = "Rule 102: SmartMeter Voltage Range and Phase Balance";
-                      matchScore = 91;
-                      nodeRelations = "METER_405 -> OPERATES_WITHIN -> VOLTAGE_RANGE";
-                      graphEdge = "BALANCE_LOAD_OVER_PHASES";
-                      latency = 480;
-                      faithfulness = 99.1;
-                    } else if (cleanText.includes('saldırı') || cleanText.includes('tamper') || cleanText.includes('siber')) {
-                      ruleTitle = "Rule 110: SmartMeter Cyber Security Tamper Detection";
-                      matchScore = 96;
-                      nodeRelations = "SMART_METER -> REJECTS_UNAUTHORIZED_FIRMWARE";
-                      graphEdge = "TRIGGERS_ISOLATION_ALARM";
-                      latency = 390;
-                      faithfulness = 99.8;
-                    }
-
-                    return (
-                      <div className="panel" style={{ flex: 1, padding: '20px', textAlign: 'left', minHeight: '340px' }}>
-                        <div className="panel-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <h3 style={{ fontSize: '12px', color: 'var(--orange)', fontWeight: 'bold' }}>🔍 PHOENIX RAG TRACE OBSERVER</h3>
-                          <span style={{ fontSize: '8px', background: 'var(--green)', color: '#fff', padding: '2px 5px', borderRadius: '3px', fontWeight: 'bold' }}>
-                            TRACE ACTIVE
-                          </span>
+                  {rightSidebarTab === 'trace' ? (
+                    <>
+                      {/* Configuration Settings */}
+                      <div className="panel" style={{ padding: '20px', textAlign: 'left' }}>
+                        <div className="panel-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', marginBottom: '12px' }}>
+                          <h3 style={{ fontSize: '12px', color: 'var(--cyan)', fontWeight: 'bold' }}>⚙️ RAG CONFIGURATION (PLAYGROUND)</h3>
                         </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', fontSize: '10.5px' }}>
-                          {/* Step 1 */}
-                          <div style={{ borderLeft: '2px solid var(--cyan)', paddingLeft: '10px', position: 'relative' }}>
-                            <div style={{ position: 'absolute', left: '-5px', top: '2px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--cyan)' }}></div>
-                            <strong style={{ color: '#fff', display: 'block' }}>1. INPUT PARSER & TOKEN EXTRACTION <span style={{ color: 'var(--cyan)', float: 'right' }}>12ms</span></strong>
-                            <span style={{ color: 'var(--text-muted)' }}>Query: </span>
-                            <span style={{ color: '#cbd5e1', fontFamily: 'monospace' }}>"{msgText.substring(0, 70)}..."</span>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '11px' }}>
+                          <div>
+                            <label style={{ display: 'block', marginBottom: '4px', color: 'var(--text-muted)', fontSize: '10px', textTransform: 'uppercase' }}>Active Model:</label>
+                            <select 
+                              value={ragModel} 
+                              onChange={(e) => setRagModel(e.target.value)}
+                              style={{ width: '100%', background: 'var(--bg-panel)', border: '1px solid var(--border-color)', color: '#fff', padding: '6px', borderRadius: '4px', fontSize: '11px' }}
+                            >
+                              <option value="Gemini 2.5 Flash">Gemini 2.5 Flash (Default)</option>
+                              <option value="GPT-4o (Simulated)">GPT-4o (Simulated)</option>
+                              <option value="Claude 3.5 Sonnet (Simulated)">Claude 3.5 Sonnet (Simulated)</option>
+                            </select>
                           </div>
 
-                          {/* Step 2 */}
-                          <div style={{ borderLeft: '2px solid var(--orange)', paddingLeft: '10px', position: 'relative' }}>
-                            <div style={{ position: 'absolute', left: '-5px', top: '2px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--orange)' }}></div>
-                            <strong style={{ color: '#fff', display: 'block' }}>2. HYBRID VECTOR SEARCH RETRIEVAL <span style={{ color: 'var(--orange)', float: 'right' }}>48ms</span></strong>
-                            <span style={{ color: 'var(--text-muted)' }}>Top match: </span>
-                            <span style={{ color: 'var(--orange)', fontWeight: 'bold' }}>{ruleTitle}</span>
-                            <span style={{ color: 'var(--green)', marginLeft: '10px' }}>({matchScore}% Cosine Score)</span>
-                          </div>
-
-                          {/* Step 3 */}
-                          <div style={{ borderLeft: '2px solid #a78bfa', paddingLeft: '10px', position: 'relative' }}>
-                            <div style={{ position: 'absolute', left: '-5px', top: '2px', width: '8px', height: '8px', borderRadius: '50%', background: '#a78bfa' }}></div>
-                            <strong style={{ color: '#fff', display: 'block' }}>3. SQLite KNOWLEDGE GraphRAG PATHS <span style={{ color: '#a78bfa', float: 'right' }}>35ms</span></strong>
-                            <span style={{ color: 'var(--text-muted)' }}>Resolved relations: </span>
-                            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '5px', borderRadius: '4px', marginTop: '4px', fontFamily: 'monospace', fontSize: '9.5px', color: '#a78bfa' }}>
-                              {nodeRelations} <br />
-                              └─ Edge: {graphEdge}
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                              <label style={{ color: 'var(--text-muted)', fontSize: '10px', textTransform: 'uppercase' }}>Temperature:</label>
+                              <strong style={{ color: 'var(--cyan)' }}>{ragTemp}</strong>
                             </div>
+                            <input 
+                              type="range" 
+                              min="0.0" 
+                              max="1.0" 
+                              step="0.1" 
+                              value={ragTemp} 
+                              onChange={(e) => setRagTemp(parseFloat(e.target.value))}
+                              style={{ width: '100%', accentColor: 'var(--cyan)' }} 
+                            />
                           </div>
 
-                          {/* Step 4 */}
-                          <div style={{ borderLeft: '2px solid var(--green)', paddingLeft: '10px', position: 'relative' }}>
-                            <div style={{ position: 'absolute', left: '-5px', top: '2px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--green)' }}></div>
-                            <strong style={{ color: '#fff', display: 'block' }}>4. LLM GENERATION & FAITHFULNESS METRICS <span style={{ color: 'var(--green)', float: 'right' }}>{latency}ms</span></strong>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
-                              <div style={{ background: 'rgba(0,0,0,0.15)', padding: '4px 8px', borderRadius: '4px' }}>
-                                <span style={{ color: 'var(--text-muted)' }}>Tokens: </span><strong>{tokenCount}</strong>
-                              </div>
-                              <div style={{ background: 'rgba(0,0,0,0.15)', padding: '4px 8px', borderRadius: '4px' }}>
-                                <span style={{ color: 'var(--text-muted)' }}>Faithfulness: </span><strong style={{ color: 'var(--green)' }}>{faithfulness}%</strong>
-                              </div>
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                              <label style={{ color: 'var(--text-muted)', fontSize: '10px', textTransform: 'uppercase' }}>Graph Traversal Depth:</label>
+                              <strong style={{ color: '#a78bfa' }}>{ragDepth}-hop search</strong>
                             </div>
+                            <input 
+                              type="range" 
+                              min="1" 
+                              max="3" 
+                              step="1" 
+                              value={ragDepth} 
+                              onChange={(e) => setRagDepth(parseInt(e.target.value))}
+                              style={{ width: '100%', accentColor: '#a78bfa' }} 
+                            />
                           </div>
                         </div>
                       </div>
-                    );
-                  })()}
+
+                      {/* Execution Trace details */}
+                      {(() => {
+                        const activeIdx = selectedTraceIndex !== null ? selectedTraceIndex : chatMessages.length - 1;
+                        const activeMsg = chatMessages[activeIdx] || { text: 'Default Diagnostics' };
+                        const msgText = activeMsg.textKey ? (TRANSLATIONS[lang][activeMsg.textKey] || '') : (activeMsg.text || '');
+                        const cleanText = msgText.toLowerCase();
+                        
+                        let ruleTitle = "Rule 101: Transformer Overload Protocol";
+                        let matchScore = 94;
+                        let nodeRelations = "TRAFO_301 -> IS_LOCATED_IN -> Westminster";
+                        let graphEdge = "MITIGATES_LOAD_SHEDDING";
+                        let tokenCount = 764;
+                        let latency = 420;
+                        let faithfulness = 98.2;
+
+                        if (cleanText.includes('charger') || cleanText.includes('şarj')) {
+                          ruleTitle = "Rule 103: EV Charger Temperature limit";
+                          matchScore = 89;
+                          nodeRelations = "CHARGER_12 -> CONNECTED_TO -> TRAFO_301";
+                          graphEdge = "PROTECTED_BY_THERMAL_SHUTDOWN";
+                          latency = 510;
+                          faithfulness = 97.4;
+                        } else if (cleanText.includes('volt') || cleanText.includes('gerilim')) {
+                          ruleTitle = "Rule 102: SmartMeter Voltage Range and Phase Balance";
+                          matchScore = 91;
+                          nodeRelations = "METER_405 -> OPERATES_WITHIN -> VOLTAGE_RANGE";
+                          graphEdge = "BALANCE_LOAD_OVER_PHASES";
+                          latency = 480;
+                          faithfulness = 99.1;
+                        } else if (cleanText.includes('saldırı') || cleanText.includes('tamper') || cleanText.includes('siber')) {
+                          ruleTitle = "Rule 110: SmartMeter Cyber Security Tamper Detection";
+                          matchScore = 96;
+                          nodeRelations = "SMART_METER -> REJECTS_UNAUTHORIZED_FIRMWARE";
+                          graphEdge = "TRIGGERS_ISOLATION_ALARM";
+                          latency = 390;
+                          faithfulness = 99.8;
+                        }
+
+                        return (
+                          <div className="panel" style={{ flex: 1, padding: '20px', textAlign: 'left', minHeight: '340px' }}>
+                            <div className="panel-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <h3 style={{ fontSize: '12px', color: 'var(--orange)', fontWeight: 'bold' }}>🔍 PHOENIX RAG TRACE OBSERVER</h3>
+                              <span style={{ fontSize: '8px', background: 'var(--green)', color: '#fff', padding: '2px 5px', borderRadius: '3px', fontWeight: 'bold' }}>
+                                TRACE ACTIVE
+                              </span>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', fontSize: '10.5px' }}>
+                              <div style={{ borderLeft: '2px solid var(--cyan)', paddingLeft: '10px', position: 'relative' }}>
+                                <div style={{ position: 'absolute', left: '-5px', top: '2px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--cyan)' }}></div>
+                                <strong style={{ color: '#fff', display: 'block' }}>1. INPUT PARSER & TOKEN EXTRACTION <span style={{ color: 'var(--cyan)', float: 'right' }}>12ms</span></strong>
+                                <span style={{ color: 'var(--text-muted)' }}>Query: </span>
+                                <span style={{ color: '#cbd5e1', fontFamily: 'monospace' }}>"{msgText.substring(0, 70)}..."</span>
+                              </div>
+
+                              <div style={{ borderLeft: '2px solid var(--orange)', paddingLeft: '10px', position: 'relative' }}>
+                                <div style={{ position: 'absolute', left: '-5px', top: '2px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--orange)' }}></div>
+                                <strong style={{ color: '#fff', display: 'block' }}>2. HYBRID VECTOR SEARCH RETRIEVAL <span style={{ color: 'var(--orange)', float: 'right' }}>48ms</span></strong>
+                                <span style={{ color: 'var(--text-muted)' }}>Top match: </span>
+                                <span style={{ color: 'var(--orange)', fontWeight: 'bold' }}>{ruleTitle}</span>
+                                <span style={{ color: 'var(--green)', marginLeft: '10px' }}>({matchScore}% Cosine Score)</span>
+                              </div>
+
+                              <div style={{ borderLeft: '2px solid #a78bfa', paddingLeft: '10px', position: 'relative' }}>
+                                <div style={{ position: 'absolute', left: '-5px', top: '2px', width: '8px', height: '8px', borderRadius: '50%', background: '#a78bfa' }}></div>
+                                <strong style={{ color: '#fff', display: 'block' }}>3. SQLite KNOWLEDGE GraphRAG PATHS <span style={{ color: '#a78bfa', float: 'right' }}>35ms</span></strong>
+                                <span style={{ color: 'var(--text-muted)' }}>Resolved relations: </span>
+                                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '5px', borderRadius: '4px', marginTop: '4px', fontFamily: 'monospace', fontSize: '9.5px', color: '#a78bfa' }}>
+                                  {nodeRelations} <br />
+                                  └─ Edge: {graphEdge}
+                                </div>
+                              </div>
+
+                              <div style={{ borderLeft: '2px solid var(--green)', paddingLeft: '10px', position: 'relative' }}>
+                                <div style={{ position: 'absolute', left: '-5px', top: '2px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--green)' }}></div>
+                                <strong style={{ color: '#fff', display: 'block' }}>4. LLM GENERATION & FAITHFULNESS METRICS <span style={{ color: 'var(--green)', float: 'right' }}>{latency}ms</span></strong>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
+                                  <div style={{ background: 'rgba(0,0,0,0.15)', padding: '4px 8px', borderRadius: '4px' }}>
+                                    <span style={{ color: 'var(--text-muted)' }}>Tokens: </span><strong>{tokenCount}</strong>
+                                  </div>
+                                  <div style={{ background: 'rgba(0,0,0,0.15)', padding: '4px 8px', borderRadius: '4px' }}>
+                                    <span style={{ color: 'var(--text-muted)' }}>Faithfulness: </span><strong style={{ color: 'var(--green)' }}>{faithfulness}%</strong>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </>
+                  ) : (
+                    <>
+                      {/* Live Context Box */}
+                      <div className="panel" style={{ padding: '20px', textAlign: 'left' }}>
+                        <div className="panel-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', marginBottom: '12px' }}>
+                          <h3 style={{ fontSize: '12px', color: 'var(--cyan)', fontWeight: 'bold' }}>📡 ACTIVE AI SYSTEM OBSERVABILITY</h3>
+                        </div>
+                        <p style={{ fontSize: '10.5px', color: 'var(--text-muted)', lineHeight: '1.4', marginBottom: '12px' }}>
+                          {lang === 'TR' ? 'Yapay zeka asistanı, ClickHouse ve SQLite veritabanlarından aşağıdaki canlı şebeke durumunu otomatik okumaktadır:' : 'The AI automatically observes the following telemetry variables from ClickHouse and SQLite:'}
+                        </p>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11px' }}>
+                          <div style={{ padding: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                            <span>ClickHouse Anomalies Count:</span>
+                            <strong style={{ color: alerts.length > 0 ? 'var(--red)' : 'var(--green)' }}>{alerts.length} Active</strong>
+                          </div>
+                          <div style={{ padding: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Knowledge Base Rules (SQLite):</span>
+                            <strong style={{ color: 'var(--cyan)' }}>{dbRules.length > 0 ? dbRules.length : 10} Rules Loaded</strong>
+                          </div>
+                          <div style={{ padding: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Weather Load Coefficient:</span>
+                            <strong style={{ color: 'var(--orange)' }}>{gridLoadCoeff}x</strong>
+                          </div>
+                          <div style={{ padding: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                            <span>Solar Radiation (Ambient):</span>
+                            <strong style={{ color: 'var(--cyan)' }}>{solarRadiation} W/m²</strong>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Hazır Soru ve RAG Test Senaryoları */}
+                      <div className="panel" style={{ padding: '20px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <div className="panel-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+                          <h3 style={{ fontSize: '12px', color: 'var(--cyan)', fontWeight: 'bold' }}>📋 {lang === 'TR' ? 'HAZIR RAG SORGULARI (DEMO)' : 'QUICK RAG PROMPTS (DEMO)'}</h3>
+                        </div>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                          {lang === 'TR' ? 'Yapay zekanın SQLite vektör bankasından kuralları okumasını test etmek için aşağıdaki senaryolara tıklayın:' : 'Click any scenario below to trigger immediate vector retrieval and grounded AI generation:'}
+                        </span>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleChatSubmit(lang === 'TR' ? "Trafo aşırı yüklenme protokolü kuralı nedir?" : "What is the transformer overload protocol rule?")}
+                            style={{ background: 'rgba(2, 132, 199, 0.05)', color: 'var(--cyan)', border: '1px solid rgba(2, 132, 199, 0.15)', borderRadius: '6px', padding: '6px 10px', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'left' }}
+                          >
+                            ⚡ {lang === 'TR' ? 'Trafo Aşırı Yük Kuralı (Rule 101)' : 'Transformer Overload Rule (Rule 101)'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleChatSubmit(lang === 'TR' ? "EV şarj cihazı sıcaklık koruma limiti nedir?" : "What is the thermal protection limit for EV chargers?")}
+                            style={{ background: 'rgba(2, 132, 199, 0.05)', color: 'var(--cyan)', border: '1px solid rgba(2, 132, 199, 0.15)', borderRadius: '6px', padding: '6px 10px', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'left' }}
+                          >
+                            🔥 {lang === 'TR' ? 'Şarj Cihazı Sıcaklık Sınırı (Rule 103)' : 'EV Charger Thermal Limit (Rule 103)'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleChatSubmit(lang === 'TR' ? "Voltaj düşüşü limitleri ve faz dengesi kuralı" : "What is the standard voltage drop limit rule?")}
+                            style={{ background: 'rgba(2, 132, 199, 0.05)', color: 'var(--cyan)', border: '1px solid rgba(2, 132, 199, 0.15)', borderRadius: '6px', padding: '6px 10px', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'left' }}
+                          >
+                            🔌 {lang === 'TR' ? 'Voltaj & Faz Dengesi Sınırı (Rule 102)' : 'Voltage & Phase Balance Limit (Rule 102)'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleChatSubmit(lang === 'TR' ? "Siber saldırı veya sayaç kurcalama kuralı nedir?" : "What is the smartmeter tampering rule?")}
+                            style={{ background: 'rgba(2, 132, 199, 0.05)', color: 'var(--cyan)', border: '1px solid rgba(2, 132, 199, 0.15)', borderRadius: '6px', padding: '6px 10px', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'left' }}
+                          >
+                            🛡️ {lang === 'TR' ? 'Sayaç Siber Güvenlik Kuralı (Rule 110)' : 'SmartMeter Cyber Rule (Rule 110)'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleChatSubmit(lang === 'TR' ? "Karbon yoğunluğu yüksekken yeşil güç yönlendirmesi kuralı" : "What should operators do when carbon intensity is high?")}
+                            style={{ background: 'rgba(2, 132, 199, 0.05)', color: 'var(--cyan)', border: '1px solid rgba(2, 132, 199, 0.15)', borderRadius: '6px', padding: '6px 10px', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'left' }}
+                          >
+                            🍃 {lang === 'TR' ? 'Yeşil Güç Karbon Kuralı (Rule 104)' : 'Green Power Carbon Rule (Rule 104)'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Quick AI Autopilot Actions */}
+                      <div className="panel" style={{ padding: '20px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <div className="panel-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+                          <h3 style={{ fontSize: '12px', color: 'var(--cyan)', fontWeight: 'bold' }}>⚡ AI AUTOPILOT ACTIONS</h3>
+                        </div>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                          {lang === 'TR' ? 'Tüm sistemi tarayarak kapsamlı bir risk analiz raporu oluşturması için yapay zekayı tetikleyin.' : 'Trigger the AI to execute a comprehensive grid scan and output a mitigation report.'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleChatSubmit(lang === 'TR' ? "Şebekedeki tüm aktif arızaları tarayıp durum analizi yapar mısın?" : "Can you scan all active grid anomalies and compile a diagnostic report?")}
+                          style={{ 
+                            background: 'var(--cyan)', 
+                            color: '#fff', 
+                            border: 'none', 
+                            borderRadius: '6px', 
+                            padding: '10px', 
+                            fontSize: '11px', 
+                            fontWeight: 'bold', 
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          🤖 {lang === 'TR' ? 'Tam Şebeke Analizi Tetikle' : 'Run Full Grid Diagnostics'}
+                        </button>
+                      </div>
+                    </>
+                  )}
 
                 </div>
               </div>
