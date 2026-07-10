@@ -3834,6 +3834,8 @@ function App() {
                     const activeIdx = selectedTraceIndex !== null ? selectedTraceIndex : chatMessages.length - 1;
                     const activeMsg = chatMessages[activeIdx] || { text: 'Default Diagnostics' };
                     const isAi = activeMsg.sender === 'ai';
+                    const msgText = activeMsg.textKey ? (TRANSLATIONS[lang][activeMsg.textKey] || '') : (activeMsg.text || '');
+                    const cleanText = msgText.toLowerCase();
                     
                     let ruleTitle = "Rule 101: Transformer Overload Protocol";
                     let matchScore = 94;
@@ -3843,21 +3845,21 @@ function App() {
                     let latency = 420;
                     let faithfulness = 98.2;
 
-                    if (activeMsg.text.toLowerCase().includes('charger') || activeMsg.text.toLowerCase().includes('şarj')) {
+                    if (cleanText.includes('charger') || cleanText.includes('şarj')) {
                       ruleTitle = "Rule 103: EV Charger Temperature limit";
                       matchScore = 89;
                       nodeRelations = "CHARGER_12 -> CONNECTED_TO -> TRAFO_301";
                       graphEdge = "PROTECTED_BY_THERMAL_SHUTDOWN";
                       latency = 510;
                       faithfulness = 97.4;
-                    } else if (activeMsg.text.toLowerCase().includes('volt') || activeMsg.text.toLowerCase().includes('gerilim')) {
+                    } else if (cleanText.includes('volt') || cleanText.includes('gerilim')) {
                       ruleTitle = "Rule 102: SmartMeter Voltage Range and Phase Balance";
                       matchScore = 91;
                       nodeRelations = "METER_405 -> OPERATES_WITHIN -> VOLTAGE_RANGE";
                       graphEdge = "BALANCE_LOAD_OVER_PHASES";
                       latency = 480;
                       faithfulness = 99.1;
-                    } else if (activeMsg.text.toLowerCase().includes('saldırı') || activeMsg.text.toLowerCase().includes('tamper') || activeMsg.text.toLowerCase().includes('siber')) {
+                    } else if (cleanText.includes('saldırı') || cleanText.includes('tamper') || cleanText.includes('siber')) {
                       ruleTitle = "Rule 110: SmartMeter Cyber Security Tamper Detection";
                       matchScore = 96;
                       nodeRelations = "SMART_METER -> REJECTS_UNAUTHORIZED_FIRMWARE";
