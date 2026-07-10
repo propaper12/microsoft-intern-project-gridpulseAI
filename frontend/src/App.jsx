@@ -3883,7 +3883,7 @@ function App() {
                             <div style={{ position: 'absolute', left: '-5px', top: '2px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--cyan)' }}></div>
                             <strong style={{ color: '#fff', display: 'block' }}>1. INPUT PARSER & TOKEN EXTRACTION <span style={{ color: 'var(--cyan)', float: 'right' }}>12ms</span></strong>
                             <span style={{ color: 'var(--text-muted)' }}>Query: </span>
-                            <span style={{ color: '#cbd5e1', fontFamily: 'monospace' }}>"{activeMsg.text.substring(0, 70)}..."</span>
+                            <span style={{ color: '#cbd5e1', fontFamily: 'monospace' }}>"{msgText.substring(0, 70)}..."</span>
                           </div>
 
                           {/* Step 2 */}
