@@ -1,5 +1,6 @@
 import json
 import asyncio
+from datetime import datetime
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -72,12 +73,20 @@ async def event_generator():
                 device = random.choice(devices)
                 city = random.choice(cities)
                 reason = random.choice(reasons)
+                val_truth = random.randint(10, 48)
                 val = {
-                    "device": device,
+                    "account_id": f"{device.split('_')[0]}_{random.randint(100, 999)}",
+                    "hashtag": "Transformer" if "TRAFO" in device else ("EVCharger" if "CHARGER" in device else "SmartMeter"),
+                    "post_text": f"Telemetry: Load={random.randint(120,480)}kW, Voltage={random.randint(180,240)}V, Temp={random.randint(20,85)}C",
                     "city": city,
                     "reason": reason,
-                    "truth_score": random.randint(10, 48),
-                    "fact_check_result": f"Diagnostics: {device} verified offline via local simulation."
+                    "ai_risk_score": float(100 - val_truth),
+                    "nlp_sentiment": round(random.uniform(-0.9, -0.2), 2),
+                    "truth_score": val_truth,
+                    "fact_check_result": f"Diagnostics: {device} verified offline via local simulation.",
+                    "is_bot": True,
+                    "timestamp": datetime.utcnow().isoformat() + "Z",
+                    "device": device
                 }
                 yield f"data: {json.dumps(val)}\n\n"
                 await asyncio.sleep(5.0)

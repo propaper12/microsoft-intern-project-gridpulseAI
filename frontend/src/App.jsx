@@ -626,7 +626,20 @@ function App() {
     eventSource.onmessage = (event) => {
       isConnected = true;
       stopSimulation();
-      const newAlert = JSON.parse(event.data);
+      const rawAlert = JSON.parse(event.data);
+      const newAlert = {
+        ...rawAlert,
+        hashtag: rawAlert.hashtag || rawAlert.device || 'SmartMeter',
+        account_id: rawAlert.account_id || rawAlert.device || 'METER_UNKNOWN',
+        post_text: rawAlert.post_text || `Telemetry: Load=${rawAlert.consumption || 100}kW`,
+        city: rawAlert.city || 'Central Substation',
+        reason: rawAlert.reason || 'OVERHEATING',
+        truth_score: typeof rawAlert.truth_score === 'number' ? rawAlert.truth_score : 45.0,
+        nlp_sentiment: typeof rawAlert.nlp_sentiment === 'number' ? rawAlert.nlp_sentiment : -0.5,
+        fact_check_result: rawAlert.fact_check_result || 'Diagnostics: Verified offline mode.',
+        is_bot: rawAlert.is_bot !== undefined ? rawAlert.is_bot : true,
+        timestamp: rawAlert.timestamp || new Date().toISOString()
+      };
       setAlerts((prev) => [newAlert, ...prev].slice(0, 50));
       
       // Dynamic audio alert synthesis
@@ -2587,7 +2600,7 @@ function App() {
                       <tbody>
                         {alerts
                           .filter(a => a.truth_score < 50 && !revertedIds.includes(`${a.account_id}-${a.hashtag}-${a.timestamp}`))
-                          .filter(a => a.hashtag.toLowerCase().includes(searchQuery.toLowerCase()) || a.account_id.toLowerCase().includes(searchQuery.toLowerCase()))
+                          .filter(a => (a.hashtag || '').toLowerCase().includes(searchQuery.toLowerCase()) || (a.account_id || '').toLowerCase().includes(searchQuery.toLowerCase()))
                           .map((row, idx) => (
                             <tr key={idx} style={{ borderBottom: '1px solid rgba(0,0,0,0.03)' }}>
                               <td style={{ padding: '8px 0', fontWeight: 'bold', color: 'var(--text-main)' }}>{row.hashtag}</td>
@@ -2654,7 +2667,7 @@ function App() {
                           ))}
                         {alerts
                           .filter(a => a.truth_score < 50 && !revertedIds.includes(`${a.account_id}-${a.hashtag}-${a.timestamp}`))
-                          .filter(a => a.hashtag.toLowerCase().includes(searchQuery.toLowerCase()) || a.account_id.toLowerCase().includes(searchQuery.toLowerCase()))
+                          .filter(a => (a.hashtag || '').toLowerCase().includes(searchQuery.toLowerCase()) || (a.account_id || '').toLowerCase().includes(searchQuery.toLowerCase()))
                           .length === 0 && (
                           <tr>
                             <td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
