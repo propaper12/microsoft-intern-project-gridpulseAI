@@ -1,167 +1,153 @@
 # GridPulseAI ⚡
-### Microsoft Internship Project - Real-Time AI-SCADA IoT Cable Grid Monitor
+### Microsoft Staj Projesi - Gerçek Zamanlı Yapay Zeka Destekli SCADA IoT Kablo Şebeke İzleme Platformu
 
-**GridPulseAI** is a futuristic, enterprise-grade AI-powered Co-SCADA (Supervisory Control and Data Acquisition) monitoring dashboard. It is designed to track underground high-voltage power cables, analyze soil thermal capacity, calculate solar-induced derating limits, perform real-time explainable cybersecurity anomaly detection (XAI SHAP), and implement an offline local RAG AI Copilot using SQLite vector storage and Microsoft Foundry Local standards.
-
----
-
-## 🚀 Key Features
-
-*   **🧠 Yapay Zeka Beyni & Kontrol Odası (AI Brain Control Room):** 
-    *   A full-screen primary workspace tab that puts AI at the core of SCADA operations.
-    *   **AI System Observability Context:** Displays real-time parameters (ClickHouse anomaly count, SQLite RAG rules count, weather load multipliers) that the AI automatically reads.
-    *   **AI Autopilot Diagnostics:** Execute one-click full grid scans causing the AI to retrieve ClickHouse warnings, compare SQLite guidelines, and compile comprehensive diagnostic reports.
-*   **🔍 RAG Akış Analizi (RAG Execution Path Inspector):**
-    *   Click **"🔍 RAG Analiz Raporu"** under any AI chat reply to view a neon-styled step-by-step diagnostic modal.
-    *   **⚡ Self-Healing RAG (LangChain pattern):** Automatically runs semantic Query Expansion if the initial SQLite match score is weak (<35%), expanding terms to cover synonyms (e.g. *"trafo"* $\rightarrow$ *"transformer overload"*).
-    *   **🌐 SQLite Knowledge Graph (GraphRAG pattern):** Resolves 1-hop and 2-hop Entity-Relation links from SQLite `graph_nodes` & `graph_edges` tables, displaying an SVG Graph visualizer with glowing colored nodes and relation paths.
-    *   **🎯 Groundedness (Faithfulness) Score:** Evaluates the exact lexical word overlap between the LLM output and the retrieved sources, outputting a dynamic percentage score (e.g. *96.4%*) to check for hallucinations.
-    *   Inspect exactly: (1) Vectorized query floats, (2) SQLite Cosine Similarity + Keyword Boost reranking, (3) SVG Knowledge Graph Map, (4) ClickHouse live anomalies, and (5) Augmented system prompt.
-*   **🗺️ Geographic SCADA Map (Google Maps Integration):** 
-    *   Leverages high-speed Google Maps Roadmap CDN layers to load instantly.
-    *   Interactive **SVG Cable Routes** (Polylines) across 9 key locations in London, changing color dynamically based on real-time cable thermal stress.
-*   **📡 Stateful Big Data Stream Pipeline:**
-    *   **Redpanda (Kafka):** High-throughput event ingestion broker.
-    *   **Bytewax (Rust-powered):** Stateful stream processing engine grouping and filtering raw sensor telemetries.
-    *   **ClickHouse OLAP Database:** Columnar database for high-performance sub-millisecond telemetry analytics.
-*   **🧠 Explainable AI (XAI SHAP) & Diagnostics:**
-    *   Neural threat detection identifying voltage anomalies, physical overload, and overheating alerts.
-    *   Real-time **SHAP feature importance bars** displaying the AI's exact trigger factors (Load, Temp, Voltage Delta).
-*   **📁 Offline Local RAG & Vector Search (SQLite & Microsoft Foundry Local):**
-    *   **SQLite Vector Storage:** Stores smart grid rules, safety guidelines, and emergency protocols along with their computed embedding vectors in a local `grid_rules_kb.db`.
-    *   **Local Semantic Search:** Performs cosine similarity calculations entirely offline in Python to retrieve relevant operating manuals.
-    *   **Microsoft Foundry Local Integration:** Feeds retrieved context into an on-device local LLM (e.g. Phi-3.5) with graceful cloud fallbacks for fully offline, grounded Q&A.
-*   **⚡ Remote SCADA Cyber Control Overrides:**
-    *   Context-aware control operations (❄️ Activate Grid Cooling, 🔄 Balance Grid Phases, ⚡ Derate Current Limits) to mitigate active grid alarms.
-*   **🟢 Glowing Service Health LEDs:**
-    *   A futuristic status LED panel in the topbar indicating the live connection status (ONLINE/OFFLINE) of ClickHouse (CH), Redpanda (RP), SQLite RAG (RAG), and Gemini.
+**GridPulseAI**, yeraltı yüksek voltaj güç kablolarını izlemek, toprak termal kapasitesini analiz etmek, güneş kaynaklı yük sınırlarını hesaplamak, gerçek zamanlı açıklanabilir siber güvenlik anomali tespiti (XAI SHAP) yapmak ve SQLite vektör depolaması kullanarak tamamen yerel (offline) çalışan bir RAG AI Copilot barındıran kurumsal düzeyde bir **AI-SCADA (Co-SCADA) Kontrol Odası** uygulamasıdır.
 
 ---
 
-## 🏗️ System Architecture
+## 🚀 Öne Çıkan Özellikler
+
+*   **🧠 Yapay Zeka Beyni & 3 Sütunlu Otonom Kontrol Odası (3-Column Workspace):** 
+    *   **Görkemli 3 Sütunlu Grid Layout:** SCADA izleme operasyonlarını kurumsal standartlarda dikey sol navigasyon menüsü, geniş orta analitik çalışma alanı ve sağ taraftaki **GridPulse AI Aktivite HUD** paneli ile yönetir.
+    *   **Bilişsel Düşünce İzleme (Cognitive Thought Daemon):** Sağ panelde yer alan turuncu neon pulsing efekti, ajanın o anki akıl yürütme adımlarını (Reasoning Steps) milisaniyelik gecikmelerle canlı olarak yansıtır. (Örn: *Sorgu vektörü hesaplanıyor*, *ClickHouse anomali tablosu taranıyor*, *SQLite RAG kuralları eşleştiriliyor*).
+    *   **Bilişsel Sinaps Analiz Paneli:** Ajan aktif olduğunda dalgalanan neon sinaps SVG sinyal dalgalarını, bellek/RAM kullanımını (3.4 GB) ve aktif ClickHouse / SQLite thread durumlarını canlı gösterir.
+    *   **2.5 Saniyede Bir Canlı Telemetri Güncellemesi:** Telemetri veri akışı ve terminal günlüğü arka planda sürekli akan canlı SCADA günlükleriyle (`[DAEMON] Ingested telemetry packets...`) beslenir.
+*   **🔍 Phoenix RAG İzleyici & Vektör Analizörü (AI Brain Tab):**
+    *   Yapay Zeka Beyni sekmesinde, asistan cevaplarının altında beliren **"🔍 RAG Analiz Raporu"** butonu veya doğrudan sağ panel aracılığıyla çalışan görsel teşhis modülüdür.
+    *   **32 Boyutlu Vektör Hücre Izgarası (Adım 1):** Sorgunun çözümlenen 32 boyutlu vektörünü 12 hücrelik ısıl renkli kutucuk matrisi olarak çizer.
+    *   **Kosinüs Benzerlik İlerleme Barları (Adım 2):** SQLite kural eşleşmesini neon ilerleme barları (progress bars) ve benzerlik skorlarıyla yansıtır.
+    *   **GraphRAG Bilgi Grafı (Adım 3):** SQLite anlamsal ilişkilerini gösteren mini bir SVG grafik akış devresi çizer.
+    *   **Doğruluk Oranı (Adım 4):** Modelin halüsinasyon durumunu ölçen groundedness yüzdesini yüksek kontrastlı kural paneliyle sunar.
+*   **🔍 İnteraktif RAG Sorgu Konsolu (Knowledge Base Tab):**
+    *   Bilgi Bankası sekmesinin en tepesine, operatörün RAG sistemini canlı olarak test edebilmesi için **Sorgu Arama Kutusu & VEKTÖR SORGUSU ÇALIŞTIR** butonu entegre edilmiştir. Operatör buraya *"Westminster voltaj"* yazdığında, kuralların kosinüs skorlarına göre progress barlarla süzüldüğünü ve 32-D vektör hücrelerinin anlık parladığını canlı izleyebilir.
+*   **🗺️ Coğrafi SCADA Haritası (Google Maps Entegrasyonu):** 
+    *   Google Maps Roadmap CDN katmanlarını kullanarak anında yüklenir.
+    *   Londra'daki 9 kritik trafo merkezini birbirine bağlayan **SVG Kablo Güzergahları** (Polylines), gerçek zamanlı kablo termal stres seviyelerine göre dinamik olarak renk değiştirir.
+*   **📡 Stateful Büyük Veri Akış Hattı (Big Data Stream Pipeline):**
+    *   **Redpanda (Kafka):** Yüksek verimli telemetri veri toplama broker'ı.
+    *   **Bytewax (Rust Destekli):** Telemetri sensör verilerini filtreleyen ve gruplayan stateful veri akış motoru.
+    *   **ClickHouse OLAP Veritabanı:** Milisaniyenin altında telemetri analitiği için sütun bazlı (columnar) veritabanı.
+*   **🧠 Açıklanabilir Yapay Zeka (XAI SHAP) & Teşhisler:**
+    *   Voltaj dalgalanmaları, fiziksel aşırı yüklenme ve aşırı ısınma alarmlarını tespit eden yapay zeka tehdit sınıflandırıcısı.
+    *   Ajanın karar alma kriterlerini (Yük, Sıcaklık, Voltaj Sapması) gösteren gerçek zamanlı **SHAP özellik ağırlığı barları**.
+*   **📁 Çevrimdışı Yerel RAG (Ollama Llama 3.2 1B):**
+    *   **Strict QA Prompt Format:** Küçük yerel modellerin (Llama 3.2 1B gibi) sistem talimatlarını tekrarlamasını veya sızdırmasını (prompt leakage) önlemek üzere özel olarak tasarlanmış, doğrudan soru-cevap odaklı prompt şablonu.
+    *   Yerel işlemci (CPU) üzerinde çalışan yerel dil modeli sayesinde tamamen çevrimdışı, güvenli ve bağımsız Q&A desteği.
+
+---
+
+## 🏗️ Sistem Mimarisi
 
 ```mermaid
 graph TD
-    subgraph Data Stream Pipeline
-        Sensors[📡 IoT Grid Sensors] -->|JSON Telemetry| Redpanda[✉️ Redpanda Kafka Broker]
-        Redpanda -->|Stream Processing| Bytewax[🐝 Bytewax Dataflow Engine]
-        Bytewax -->|ML Diagnostics| XAI[🧠 SHAP Anomaly Classifier]
+    subgraph Veri Akış Hattı (Stream Pipeline)
+        Sensors[📡 IoT Şebeke Sensörleri] -->|JSON Telemetri| Redpanda[✉️ Redpanda Kafka Broker]
+        Redpanda -->|Veri Akışı İşleme| Bytewax[🐝 Bytewax Stream Engine]
+        Bytewax -->|ML Teşhis| XAI[🧠 SHAP Karar Sınıflandırıcı]
         XAI -->|Aggregated Data| ClickHouse[(🗄️ ClickHouse DB)]
     end
 
-    subgraph Offline Local RAG
-        SQLite[(📁 SQLite Vector DB)] <-->|Cosine Vector Similarity| VectorStore[🔍 Vector Search Engine]
+    subgraph Çevrimdışı Yerel RAG
+        SQLite[(📁 SQLite Vektör DB)] <-->|Kosinüs Benzerliği| VectorStore[🔍 Vektör Arama Motoru]
     end
 
-    subgraph Service Layer
-        ClickHouse -->|SQL Queries| FastAPI[⚡ FastAPI Server]
-        VectorStore <-->|Local Context| FastAPI
+    subgraph Servis Katmanı
+        ClickHouse -->|SQL Sorguları| FastAPI[⚡ FastAPI Server]
+        VectorStore <-->|Yerel Bağlam| FastAPI
         FastAPI -->|SSE / JSON API| React[⚛️ React Vite UI]
-        React -->|Operator Chat Queries| FastAPI
-        FastAPI -->|Offline LLM| LLM[🤖 Local LLM / Foundry Local]
+        React -->|Operatör Chat Sorguları| FastAPI
+        FastAPI -->|Çevrimdışı LLM| LLM[🤖 Local LLM / Ollama Llama 3.2]
     end
 ```
 
 ---
 
-## ⚙️ Tech Stack
+## ⚙️ Teknoloji Yığını
 
-*   **Frontend:** React 18, Vite, Leaflet, Recharts.
-*   **Backend:** FastAPI (Python), Uvicorn.
-*   **Data Processing:** Bytewax (Stateful Python/Rust Engine).
-*   **Message Broker:** Redpanda (Kafka compatible).
-*   **Database:** ClickHouse (OLAP), SQLite (Vektör Bilgi Bankası), Dragonfly (Redis-compatible cache).
-*   **AI/ML:** scikit-learn, SHAP explainers.
+*   **Arayüz:** React 18, Vite, Leaflet, Recharts.
+*   **Sunucu:** FastAPI (Python), Uvicorn.
+*   **Veri İşleme:** Bytewax (Stateful Python/Rust Veri Akış Motoru).
+*   **Mesaj Broker:** Redpanda (Kafka Uyumlu).
+*   **Veritabanı:** ClickHouse (OLAP), SQLite (Vektör Bilgi Bankası), Dragonfly (Redis-uyumlu önbellek).
+*   **AI/ML:** scikit-learn, SHAP, Ollama (Llama 3.2 1B).
 
 ---
 
-## 🛠️ Setup & Execution Guide
+## 🛠️ Kurulum ve Çalıştırma Kılavuzu
 
-### Prerequisites
-Make sure you have the following installed on your machine:
+### Gereksinimler
 *   [Python 3.9+](https://www.python.org/downloads/)
 *   [Node.js (v16+)](https://nodejs.org/)
 *   [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+*   [Ollama (Llama 3.2 1B kurulu)](https://ollama.com/)
 
 ---
 
-### Step 1: Start Docker Infrastructure
-Spin up Redpanda, ClickHouse, and Dragonfly databases in background containers:
+### Adım 1: Docker Altyapısını Başlatın
+Redpanda, ClickHouse ve Dragonfly konteynerlerini arka planda çalıştırın:
 ```bash
 docker compose up -d
 ```
-Once started, the management interfaces will be available:
+Servis arayüzleri:
 *   **Redpanda Console:** [http://localhost:8080](http://localhost:8080)
-*   **ClickHouse Play HTTP Client:** [http://localhost:8123/play](http://localhost:8123/play)
+*   **ClickHouse Play Arayüzü:** [http://localhost:8123/play](http://localhost:8123/play)
 
 ---
 
-### Step 2: Set Up Backend Virtual Environment
-Navigate to the root directory and install dependencies:
+### Adım 2: Python Sanal Ortamını Kurun
+Kök dizinde virtualenv oluşturup bağımlılıkları yükleyin:
 ```bash
-# Create venv
+# Sanal ortam oluşturma
 python -m venv venv
 
-# Activate venv (Windows)
+# Aktifleştirme (Windows)
 venv\Scripts\activate
 
-# Install dependencies
+# Bağımlılıkları yükleme
 pip install -r requirements.txt
 ```
 
 ---
 
-### Step 3: Populate local RAG Vektör Bilgi Bankası (SQLite)
-Initialize the local SQLite database and populate it with smart grid safety rules and computed embeddings:
+### Adım 3: Yerel RAG SQLite Bilgi Bankasını Oluşturun
+SQLite veritabanını ilklendirin ve vektör kurallarını yerleştirin:
 ```bash
 python backend/initialize_kb.py
 ```
 
 ---
 
-### Step 4: Run Background Services
-Activate your virtual environment and start each script in a separate terminal:
-1.  **FastAPI REST/SSE Server:**
+### Adım 4: Arka Plan Servislerini Çalıştırın
+Sanal ortamınız aktifken her bir servisi ayrı bir terminalde başlatın:
+1.  **FastAPI Sunucusu:**
     ```bash
     uvicorn backend.api:app --reload --port 8000
     ```
-2.  **IoT Grid Telemetry Producer:**
+2.  **IoT Telemetri Üreticisi:**
     ```bash
     python backend/iot_grid_stream.py
     ```
-3.  **Real-Time ML Anomaly Detector:**
+3.  **Real-Time ML Anomali Dedektörü:**
     ```bash
     python backend/grid_anomaly_detector.py
     ```
 
 ---
 
-### Step 5: Run Frontend Client
-Navigate to the `frontend/` directory, install packages, and boot Vite dev server:
+### Adım 5: Arayüzü (Frontend) Çalıştırın
+`frontend/` dizinine gidin, paketleri kurun ve Vite geliştirme sunucusunu başlatın:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+Tarayıcınızdan [http://localhost:5173](http://localhost:5173) adresine girin.
 
 ---
 
-## 📖 Technical Documentation
+## 🛡️ Sunum İçin İpuçları ve Senaryolar
 
-Explore the comprehensive technical guides and manuals detailing the GridPulseAI architecture and AI models:
-
-*   **🏗️ [System Architecture & Data Pipelines](docs/system_architecture.md):** Detailed overview of the real-time grid stream processing architecture, detailing Redpanda, Bytewax, ClickHouse, and React UI data pipelines.
-*   **🧠 [AI Copilot & Prompt Engineering Guide](docs/prompt_engineering_guide.md):** Technical specifications of prompt role definitions, anti-hallucination guardrails, and structural system instruction formats.
-*   **🔍 [SQLite Offline Vector Search](docs/sqlite_vector_search.md):** Documentation of the offline vector search mathematical backend, covering vocabulary-based frequency embeddings and Cosine Similarity matching algorithms.
-*   **📈 [ML Anomaly Detection & SHAP Explanations](docs/anomaly_detection_shap.md):** Detailed guide on the machine learning pipeline, documenting XGBoost feature engineering and real-time Explainable AI (XAI) feature weights.
-*   **🛠️ [Installation & Troubleshooting Guide](docs/installation_and_troubleshooting.md):** Step-by-step setup walkthrough, detailing python environments, Node.js packages, and Docker port conflict resolution procedures.
-*   **🔌 [API Reference Manual](docs/api_reference.md):** Complete specifications of REST API endpoints, SSE streams, JSON payloads, and RAG copilot integration flows.
-
----
-
-## 🛡️ Presentation Credentials & Notes
-*   **🧠 Yapay Zeka Beyni (AI Control Room):** Select the `🧠 Yapay Zeka Beyni` tab from the left sidebar navigation. Ask questions in the large AI Terminal or click **"🤖 Tam Şebeke Analizi Tetikle"** to trigger a full system telemetry diagnostics run.
-*   **🔍 RAG Akış Analizi (RAG Inspector):** Once the AI replies, click **"🔍 RAG Analiz Raporu"** under the bubble to show the jury the exact 32-D query vector and SQLite cosine matching scores.
-*   **🧪 Vektör Matematik Simülatörü:** Select the `Rules` tab and use the right-hand **Vector Cosine Math Lab** panel to type words, inspect 32-D vectors, and calculate similarity between sentences in real-time.
-*   **🟢 Service LEDs & Offline Mode:** The topbar LEDs dynamically check database connections. If Docker is offline, the React frontend falls back to simulated pipelines seamlessly to maintain a 100% stable presentation demo.
+*   **🧠 Yapay Zeka Beyni (AI Control Room):** Sol menüden `🧠 Yapay Zeka Beyni` sekmesine geçin. Sağ paneldeki **Düşünce Daemon** turuncu neon halkasının ve bilişsel sinapsların nasıl çalıştığını gösterin.
+*   **💬 Canlı Düşünce Testi:** Sol sohbet paneline *"Trafo 301 durum analizi yap"* yazıp gönderin. Sağ paneldeki düşüncelerin sırasıyla değişmesini ve milisaniyelik işlemlerle log akmasını izletin.
+*   **🔍 RAG İzleyici & Vektör Izgarası:** Cevabın altındaki *"🔍 RAG Analiz Raporu"* butonuna basarak 32 boyutlu vektör hücrelerini, progress barları ve bilgi grafiğini jüriye gösterin.
+*   **⚡ Şebeke Güvenlik Sınırı Onayları (SCADA Terminal):** Senaryolar tetiklendiğinde ortaya çıkan SCADA override uyarı onay butonlarını bip sesleriyle jüriye sunun.

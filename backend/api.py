@@ -320,13 +320,20 @@ def get_system_status():
     # 3. Redpanda Status
     redpanda_status = "ONLINE" if is_port_open('localhost', 9092) else "OFFLINE"
         
-    gemini_status = "ONLINE" if os.environ.get("GEMINI_API_KEY") else "OFFLINE"
+    ollama_status = "OFFLINE"
+    try:
+        import requests
+        r = requests.get("http://localhost:11434/api/tags", timeout=1)
+        if r.status_code == 200:
+            ollama_status = "ONLINE"
+    except Exception:
+        pass
         
     return {
         "sqlite_rag": sqlite_status,
         "clickhouse": clickhouse_status,
         "redpanda": redpanda_status,
-        "gemini": gemini_status
+        "ollama": ollama_status,
     }
 
 @app.post("/api/vectorize")
@@ -399,7 +406,149 @@ async def copilot_query(payload: dict):
     import os
     start_time = time.time()
     user_query = payload.get("message", "")
+    
+    # Otonom grafik oluşturma / tetikleme mekanizması (Keyword-based chart spawn)
+    lower_query = user_query.lower()
+    auto_spawns = []
+    
+    if "yük" in lower_query or "load" in lower_query or "aşırı yük" in lower_query:
+        auto_spawns.append({
+            "action": "SPAWN_CHART",
+            "chart_type": "load",
+            "device_id": "TRAFO_301",
+            "severity": "LOW",
+            "message": "Operatörün yük analizi talebi üzerine TRAFO_301 aktif yük grafiği ve teşhisi otonom olarak yüklendi."
+        })
+    if "voltaj" in lower_query or "voltage" in lower_query or "gerilim" in lower_query:
+        auto_spawns.append({
+            "action": "SPAWN_CHART",
+            "chart_type": "voltage",
+            "device_id": "TRAFO_302",
+            "severity": "LOW",
+            "message": "Operatörün voltaj analizi talebi üzerine TRAFO_302 faz gerilim grafiği ve regülasyonu otonom olarak yüklendi."
+        })
+    if "sıcaklık" in lower_query or "ısı" in lower_query or "temp" in lower_query or "ısınma" in lower_query:
+        auto_spawns.append({
+            "action": "SPAWN_CHART",
+            "chart_type": "temperature",
+            "device_id": "CHARGER_201",
+            "severity": "LOW",
+            "message": "Operatörün termal analiz talebi üzerine CHARGER_201 EV şarj ünitesi sıcaklık profili otonom olarak yüklendi."
+        })
+    if "güç faktörü" in lower_query or "reaktif" in lower_query or "cos" in lower_query or "pf" in lower_query:
+        auto_spawns.append({
+            "action": "SPAWN_CHART",
+            "chart_type": "power_factor",
+            "device_id": "METER_101",
+            "severity": "LOW",
+            "message": "Operatörün reaktif güç dengesi talebi üzerine METER_101 cos φ güç faktörü grafiği otonom olarak yüklendi."
+        })
+    if "uyumluluk" in lower_query or "sağlık" in lower_query or "trend" in lower_query or "timeline" in lower_query:
+        auto_spawns.append({
+            "action": "SPAWN_CHART",
+            "chart_type": "timeline",
+            "device_id": "GRID_HEALTH",
+            "severity": "LOW",
+            "message": "Operatörün uyumluluk trend talebi üzerine GRID_HEALTH 24 saatlik şebeke sağlık eğrisi otonom olarak yüklendi."
+        })
+    if "kırılım" in lower_query or "dağılım" in lower_query or "kural" in lower_query or "compliance" in lower_query:
+        auto_spawns.append({
+            "action": "SPAWN_CHART",
+            "chart_type": "compliance_pie",
+            "device_id": "COMPLIANCE_ALERTS",
+            "severity": "LOW",
+            "message": "Operatörün compliance raporu talebi üzerine COMPLIANCE_ALERTS kural dağılım istatistikleri otonom olarak yüklendi."
+        })
+    if "bölgesel" in lower_query or "şehir" in lower_query or "tüketim" in lower_query or "bar" in lower_query:
+        auto_spawns.append({
+            "action": "SPAWN_CHART",
+            "chart_type": "region_bar",
+            "device_id": "REGIONAL_CONSUMPTION",
+            "severity": "LOW",
+            "message": "Operatörün bölgesel tüketim talebi üzerine REGIONAL_CONSUMPTION MW dağılım bar grafiği otonom olarak yüklendi."
+        })
+    if "radar" in lower_query or "örümcek" in lower_query or "stabilite" in lower_query or "endeks" in lower_query:
+        auto_spawns.append({
+            "action": "SPAWN_CHART",
+            "chart_type": "radar",
+            "device_id": "GRID_HEALTH_RADAR",
+            "severity": "LOW",
+            "message": "Operatörün stabilite endeks talebi üzerine GRID_HEALTH_RADAR örümcek grafiği otonom olarak yüklendi."
+        })
+    if "saçılım" in lower_query or "scatter" in lower_query or "yoğunluk" in lower_query:
+        auto_spawns.append({
+            "action": "SPAWN_CHART",
+            "chart_type": "scatter",
+            "device_id": "ANOMALY_SCATTER",
+            "severity": "LOW",
+            "message": "Operatörün anomali yoğunluk talebi üzerine ANOMALY_SCATTER saçılım grafiği otonom olarak yüklendi."
+        })
+    if "frekans" in lower_query or "frequency" in lower_query or "hz" in lower_query:
+        auto_spawns.append({
+            "action": "SPAWN_CHART",
+            "chart_type": "frequency",
+            "device_id": "GRID_FREQUENCY_LINE",
+            "severity": "LOW",
+            "message": "Operatörün frekans analizi talebi üzerine GRID_FREQUENCY_LINE frekans eğrisi otonom olarak yüklendi."
+        })
+    if "kaçak" in lower_query or "kayıp" in lower_query or "leak" in lower_query or "leakage" in lower_query:
+        auto_spawns.append({
+            "action": "SPAWN_CHART",
+            "chart_type": "leakage",
+            "device_id": "SUBSTATION_LOSS_BAR",
+            "severity": "LOW",
+            "message": "Operatörün aktif kaçak güç analizi talebi üzerine SUBSTATION_LOSS_BAR kayıp grafiği otonom olarak yüklendi."
+        })
+    if "harmonik" in lower_query or "thd" in lower_query or "bozulma" in lower_query:
+        auto_spawns.append({
+            "action": "SPAWN_CHART",
+            "chart_type": "thd",
+            "device_id": "HARMONIC_DISTORTION_AREA",
+            "severity": "LOW",
+            "message": "Operatörün harmonik bozulma talebi üzerine HARMONIC_DISTORTION_AREA THD grafiği otonom olarak yüklendi."
+        })
+
+    if "grafik" in lower_query or "chart" in lower_query or "görsel" in lower_query or "vision" in lower_query:
+        auto_spawns.append({
+            "action": "SPAWN_CHART",
+            "chart_type": "radar",
+            "device_id": "GRID_HEALTH_RADAR",
+            "severity": "LOW",
+            "message": "Operatörün grafik analizi talebi üzerine stabilite radar grafiği yüklendi ve Grafik Zekası ile yorumlandı."
+        })
+    if "self" in lower_query or "heal" in lower_query or "onar" in lower_query or "genişlet" in lower_query:
+        auto_spawns.append({
+            "action": "SPAWN_CHART",
+            "chart_type": "compliance_pie",
+            "device_id": "COMPLIANCE_ALERTS",
+            "severity": "LOW",
+            "message": "RAG self-healing senaryosu: düşük eşleşme sonrası genişletilmiş sorgu ile kural eşleşmesi doğrulandı."
+        })
+
+    # Eğer eşleşen grafik varsa agent_actions'a ekle
     lang = payload.get("lang", "TR")
+
+    # Agent rapor / karar özeti — LLM echo yerine yapılandırılmış yanıt
+    from backend.report_service import is_agent_report_request, build_agent_report_chat_reply
+    report_delivery = None
+    force_report_reply = False
+    reply = ""
+    engine = "GridPulse Local AI Model"
+
+    if is_agent_report_request(user_query):
+        report_delivery = _send_ops_report(
+            "manual", lang,
+            trigger={"reason": "OPERATOR_CHAT_REQUEST", "query": user_query},
+        )
+        reply = build_agent_report_chat_reply(
+            agent_actions, agent_logs, agent_status, report_delivery, lang,
+        )
+        engine = "GridPulse Report Engine"
+        force_report_reply = True
+
+    if auto_spawns:
+        for spawn in auto_spawns:
+            _register_agent_action(spawn, lang)
     
     # 1. Tokenization / Vectorization Time
     t_token_start = time.time()
@@ -506,95 +655,82 @@ async def copilot_query(payload: dict):
     for t in graph_context.get("triplets", []):
         formatted_triplets.append(f"({t['source']}) --[{t['relation']}]--> ({t['target']})")
     graph_context_str = "\n".join(formatted_triplets) if formatted_triplets else "No graph relations resolved."
-        
-    # 4. Build structured prompt using our new builder
-    from backend.prompt_builder import build_grid_copilot_prompt
-    base_prompt = build_grid_copilot_prompt(user_query, active_anomalies_list, local_rules, lang)
-    
-    # Inject GraphRAG Triplets Context into LLM System Prompt
-    system_prompt = base_prompt + f"\n\n[KNOWLEDGE GRAPH TRIPLETS (GraphRAG)]\n{graph_context_str}"
-    
-    reply = ""
-    engine = "GridPulse Local AI Model"
-    
-    t_llm_start = time.time()
-    
-    # --- TRY GOOGLE GEMINI 2.5 FLASH FIRST ---
-    gemini_key = os.environ.get("GEMINI_API_KEY")
-    if gemini_key and not reply:
+
+    if not force_report_reply:
+        # 4. Build structured prompt using our new builder
+        from backend.prompt_builder import build_grid_copilot_prompt
+        base_prompt = build_grid_copilot_prompt(
+            user_query, active_anomalies_list, local_rules, lang,
+            self_corrected=self_corrected, expanded_query=expanded_query,
+        )
+
+        # Inject GraphRAG Triplets Context into LLM System Prompt
+        system_prompt = base_prompt + f"\n\n[KNOWLEDGE GRAPH TRIPLETS (GraphRAG)]\n{graph_context_str}"
+
+        t_llm_start = time.time()
+
+        # --- TRY LOCAL OLLAMA MODEL DIRECTLY ---
         try:
-            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
-            gemini_headers = {"Content-Type": "application/json"}
-            gemini_body = {
-                "contents": [{"parts": [{"text": system_prompt + f"\n\nUser Query: {user_query}"}]}]
+            ollama_url = "http://localhost:11434/api/generate"
+            model_name = agent_model
+            ollama_body = {
+                "model": model_name,
+                "prompt": system_prompt,
+                "stream": False,
+                "options": {
+                    "temperature": 0.35,
+                    "num_predict": 512,
+                    "top_p": 0.9,
+                }
             }
-            gemini_data = json.dumps(gemini_body).encode("utf-8")
-            gemini_req = urllib.request.Request(gemini_url, data=gemini_data, headers=gemini_headers, method="POST")
-            with urllib.request.urlopen(gemini_req, timeout=4) as response:
+            ollama_payload = json.dumps(ollama_body).encode("utf-8")
+            ollama_req = urllib.request.Request(
+                ollama_url,
+                data=ollama_payload,
+                headers={"Content-Type": "application/json"},
+                method="POST"
+            )
+            with urllib.request.urlopen(ollama_req, timeout=120) as response:
                 res_body = json.loads(response.read().decode("utf-8"))
-                candidates = res_body.get("candidates", [])
-                if candidates and len(candidates) > 0:
-                    reply_cand = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
-                    if reply_cand:
-                        reply = reply_cand
-                        engine = "Gemini 2.5 Flash (Cloud RAG)"
+                reply = res_body.get("response", "").strip()
+                engine = f"{model_name} (Local Agent Brain)"
         except Exception as e:
-            print("Gemini API Call failed. Falling back to HuggingFace.", e)
-        
-    # --- FALLBACK TO HUGGINGFACE ---
-    if not reply:
-        try:
-            url = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
-            headers = {
-                "Content-Type": "application/json"
-            }
-            body = {
-                "inputs": f"<|system|>\n{system_prompt}</s>\n<|user|>\n{user_query}</s>\n<|assistant|>\n",
-                "parameters": {"max_new_tokens": 250, "temperature": 0.2, "repetition_penalty": 1.1}
-            }
-            data_payload = json.dumps(body).encode("utf-8")
-            req = urllib.request.Request(url, data=data_payload, headers=headers, method="POST")
-            with urllib.request.urlopen(req, timeout=4) as response:
-                res_body = json.loads(response.read().decode("utf-8"))
-                if isinstance(res_body, list) and len(res_body) > 0:
-                    generated_text = res_body[0].get("generated_text", "")
-                    if generated_text and "assistant\n" in generated_text:
-                        reply = generated_text.split("assistant\n")[-1].strip()
-                        engine = "HuggingFace Zephyr-7B (Cloud RAG)"
-        except Exception as e:
-            print("HuggingFace API Call failed. Falling back to local offline rules.", e)
-        
-    # --- TERTIARY LOCAL OFFLINE FALLBACK ---
-    if not reply:
-        active_anomalies = []
-        try:
-            client = get_clickhouse_client()
-            result = client.query("SELECT device, reason, city FROM bot_alerts WHERE truth_score < 50 ORDER BY timestamp DESC LIMIT 3")
-            active_anomalies = [{"device": r[0], "reason": r[1], "city": r[2]} for r in result.result_set]
-        except Exception:
-            pass
-            
-        lower = user_query.lower()
-        if local_rules:
-            rule = local_rules[0]
-            reply = f"Lokal Bilgi Bankası (RAG) eşleşmesi: [{rule['title']}]. Kılavuz detayı: {rule['content']}" if lang == "TR" else f"Local RAG Knowledge Base match: [{rule['title']}]. Guideline: {rule['content']}"
-        elif "durum" in lower or "status" in lower or "kararlılık" in lower or "stability" in lower:
-            if active_anomalies:
-                reply = f"Şu an şebekede {len(active_anomalies)} adet kritik anomali tespit edildi. En kritik bölge: {active_anomalies[0]['city']}. Cihaz: {active_anomalies[0]['device']}." if lang == "TR" else f"Currently, {len(active_anomalies)} critical anomalies are active. Most impacted: {active_anomalies[0]['city']} on device {active_anomalies[0]['device']}."
+            print("Ollama local LLM call failed in copilot:", e)
+
+        # --- TERTIARY LOCAL OFFLINE FALLBACK ---
+        if not reply:
+            active_anomalies = []
+            try:
+                client = get_clickhouse_client()
+                result = client.query("SELECT device, reason, city FROM bot_alerts WHERE truth_score < 50 ORDER BY timestamp DESC LIMIT 3")
+                active_anomalies = [{"device": r[0], "reason": r[1], "city": r[2]} for r in result.result_set]
+            except Exception:
+                pass
+
+            lower = user_query.lower()
+            if local_rules:
+                rule = local_rules[0]
+                reply = f"Lokal Bilgi Bankası (RAG) eşleşmesi: [{rule['title']}]. Kılavuz detayı: {rule['content']}" if lang == "TR" else f"Local RAG Knowledge Base match: [{rule['title']}]. Guideline: {rule['content']}"
+            elif "durum" in lower or "status" in lower or "kararlılık" in lower or "stability" in lower:
+                if active_anomalies:
+                    reply = f"Şu an şebekede {len(active_anomalies)} adet kritik anomali tespit edildi. En kritik bölge: {active_anomalies[0]['city']}. Cihaz: {active_anomalies[0]['device']}." if lang == "TR" else f"Currently, {len(active_anomalies)} critical anomalies are active. Most impacted: {active_anomalies[0]['city']} on device {active_anomalies[0]['device']}."
+                else:
+                    reply = "Tüm telemetri akışları stabil görünüyor. Herhangi bir aktif limit aşımı veya voltaj kaybı kaydı bulunmuyor." if lang == "TR" else "All telemetry parameters are stable. No active alerts."
+            elif "ısınma" in lower or "overheating" in lower or "sıcaklık" in lower or "temp" in lower:
+                heating = [a for a in active_anomalies if "OVERHEATING" in a['reason']]
+                if heating:
+                    reply = f"Aşırı ısınma gösteren {len(heating)} cihaz var. Gücü kısmayı veya isolasyon yapmayı öneriyorum." if lang == "TR" else f"Found {len(heating)} overheating devices. Load-shedding or isolation suggested."
+                else:
+                    reply = "Şu an şebekede aşırı ısınma uyarısı bulunmuyor. Cihaz çalışma sıcaklıkları 25-35°C nominal aralığındadır." if lang == "TR" else "No active device temperature alerts. Baselines normal."
             else:
-                reply = "Tüm telemetri akışları stabil görünüyor. Herhangi bir aktif limit aşımı veya voltaj kaybı kaydı bulunmuyor." if lang == "TR" else "All telemetry parameters are stable. No active alerts."
-        elif "ısınma" in lower or "overheating" in lower or "sıcaklık" in lower or "temp" in lower:
-            heating = [a for a in active_anomalies if "OVERHEATING" in a['reason']]
-            if heating:
-                reply = f"Aşırı ısınma gösteren {len(heating)} cihaz var. Gücü kısmayı veya isolasyon yapmayı öneriyorum." if lang == "TR" else f"Found {len(heating)} overheating devices. Load-shedding or isolation suggested."
-            else:
-                reply = "Şu an şebekede aşırı ısınma uyarısı bulunmuyor. Cihaz çalışma sıcaklıkları 25-35°C nominal aralığındadır." if lang == "TR" else "No active device temperature alerts. Baselines normal."
-        else:
-            reply = "GridPulse AI (Yerel RAG Modeli): Şebeke telemetrilerinde ortalama gecikme 38ms, ClickHouse veri yazım hızı saniyede 24 satırdır. Yardımcı olmak için buradayım." if lang == "TR" else "GridPulse AI (Local RAG): Grid telemetry is stable, Avg latency is 38ms. Let me know how I can help."
-        
-        engine = "GridPulse Local AI Model"
-        
-    llm_latency_ms = round((time.time() - t_llm_start) * 1000, 2)
+                reply = "GridPulse AI (Yerel RAG Modeli): Şebeke telemetrilerinde ortalama gecikme 38ms, ClickHouse veri yazım hızı saniyede 24 satırdır. Yardımcı olmak için buradayım." if lang == "TR" else "GridPulse AI (Local RAG): Grid telemetry is stable, Avg latency is 38ms. Let me know how I can help."
+
+            engine = "GridPulse Local AI Model"
+
+        llm_latency_ms = round((time.time() - t_llm_start) * 1000, 2)
+    else:
+        system_prompt = "[GridPulse Report Engine — agent karar özeti, LLM atlandı]"
+        llm_latency_ms = 0.0
     
     # Calculate Vector Algebra breakdowns for RAG reporting
     import math
@@ -635,6 +771,8 @@ async def copilot_query(payload: dict):
         "self_corrected": self_corrected,
         "expanded_query": expanded_query,
         "graph_context": graph_context,
+        "report_mode": force_report_reply,
+        "report_delivery": report_delivery,
         "metrics": {
             "tokenization_time_ms": tokenization_time_ms,
             "sqlite_latency_ms": sqlite_latency_ms,
@@ -677,3 +815,357 @@ async def copilot_query(payload: dict):
         print("Failed to write RAG audit log:", le)
         
     return {"reply": reply, "engine": engine, "rag_details": rag_details}
+
+# ── OTONOM AGENT GLOBAL STATE ──────────────────────────────
+agent_logs = []
+agent_actions = []
+agent_insights = []
+agent_status = "SAFE"
+agent_active = False
+GRIDPULSE_MODEL = "llama3.2:1b"
+agent_model = GRIDPULSE_MODEL
+
+
+def _register_agent_action(payload: dict, lang: str = "TR") -> bool:
+    """Agent aksiyonu kaydet veya mevcut grafiği yenile + chart vision güncelle"""
+    global agent_actions, agent_status, agent_insights, agent_logs
+    action = payload.get("action")
+    if not action:
+        return False
+
+    lang = payload.get("lang", lang)
+    slot_id = payload.get("slot_id") or f"{payload.get('device_id')}:{payload.get('chart_type')}"
+    payload = {**payload, "slot_id": slot_id}
+    if payload.get("refresh"):
+        payload["updated_at"] = datetime.utcnow().isoformat() + "Z"
+
+    # Mevcut slot varsa güncelle (yeni kart ekleme)
+    for i, existing in enumerate(agent_actions):
+        if existing.get("slot_id") == slot_id or (
+            existing.get("device_id") == payload.get("device_id")
+            and existing.get("chart_type") == payload.get("chart_type")
+            and existing.get("action") == action
+        ):
+            merged = {**existing, **payload, "slot_id": slot_id}
+            agent_actions[i] = merged
+            severity = merged.get("severity", "LOW")
+            agent_status = "OVERRIDING" if severity in ("CRITICAL", "HIGH") else "DIAGNOSING"
+            if action == "SPAWN_CHART":
+                try:
+                    from backend.chart_vision import analyze_chart_action
+                    insight = analyze_chart_action(merged, lang)
+                    insight["slot_id"] = slot_id
+                    replaced = False
+                    for j, ins in enumerate(agent_insights):
+                        if ins.get("slot_id") == slot_id or (
+                            ins.get("device_id") == merged.get("device_id")
+                            and ins.get("chart_type") == merged.get("chart_type")
+                        ):
+                            agent_insights[j] = insight
+                            replaced = True
+                            break
+                    if not replaced:
+                        agent_insights.append(insight)
+                    agent_insights[:] = agent_insights[-30:]
+                    agent_logs.append(f"[VISION] 🔄 {insight['interpretation']}")
+                    agent_logs[:] = agent_logs[-100:]
+                except Exception as ex:
+                    print("Chart vision error:", ex)
+            return True
+
+    agent_actions.append(payload)
+    agent_actions[:] = agent_actions[-12:]
+    severity = payload.get("severity", "LOW")
+    if severity in ("CRITICAL", "HIGH"):
+        agent_status = "OVERRIDING"
+    else:
+        agent_status = "DIAGNOSING"
+
+    if action == "SPAWN_CHART":
+        try:
+            from backend.chart_vision import analyze_chart_action
+            insight = analyze_chart_action(payload, lang)
+            agent_insights.append(insight)
+            agent_insights[:] = agent_insights[-30:]
+            agent_logs.append(f"[VISION] 👁 {insight['interpretation']}")
+            agent_logs[:] = agent_logs[-100:]
+        except Exception as ex:
+            print("Chart vision error:", ex)
+    return True
+
+
+def _send_ops_report(report_type: str, lang: str = "TR", trigger: dict = None) -> dict:
+    """Rapor oluştur ve gönder, loga yaz"""
+    global agent_logs
+    try:
+        from backend.report_service import compose_ops_report, send_report_email, get_agent_config
+        config = get_agent_config()
+        report = compose_ops_report(
+            report_type=report_type,
+            agent_status=agent_status,
+            agent_actions=agent_actions,
+            agent_logs=agent_logs,
+            trigger=trigger,
+            lang=lang,
+        )
+        result = send_report_email(config["ops_email"], report["subject"], report["html"], report["text"])
+        status = result.get("status", "unknown")
+        agent_logs.append(f"[REPORT] 📧 Rapor {status} → {config['ops_email']} | {report['subject']}")
+        agent_logs[:] = agent_logs[-100:]
+        return result
+    except Exception as ex:
+        agent_logs.append(f"[REPORT] ❌ Rapor hatası: {ex}")
+        agent_logs[:] = agent_logs[-100:]
+        return {"status": "failed", "error": str(ex)}
+
+
+@app.post("/api/agent/start")
+async def start_agent():
+    global agent_active, agent_logs, agent_actions, agent_status, agent_insights
+    agent_active = True
+    agent_status = "DIAGNOSING"
+    agent_actions = []
+    agent_insights = []
+    
+    baselines = [
+        {
+            "action": "SPAWN_CHART",
+            "chart_type": "load",
+            "device_id": "TRAFO_301",
+            "severity": "LOW",
+            "message": "Şebeke aktif yük dağılımı stabil. TRAFO_301 ana trafosu 320kW yük altında verimli çalışıyor, herhangi bir curtailment veya yük atma ihtiyacı gözlemlenmemiştir."
+        },
+        {
+            "action": "SPAWN_CHART",
+            "chart_type": "power_factor",
+            "device_id": "METER_101",
+            "severity": "LOW",
+            "message": "Güç faktörü ve reaktif yük analizi nominal seviyede (cos φ ≈ 0.94). Sistemin kapasitif/endüktif dengesi stabil ve kayıplar minimum düzeydedir."
+        },
+        {
+            "action": "SPAWN_CHART",
+            "chart_type": "voltage",
+            "device_id": "TRAFO_302",
+            "severity": "LOW",
+            "message": "Westminster ve Camden alt şebeke bölgelerindeki voltaj dalgalanmaları kontrol altına alındı. Faz gerilimleri 230V limitleri dahilinde stabil kalmaktadır."
+        },
+        {
+            "action": "SPAWN_CHART",
+            "chart_type": "temperature",
+            "device_id": "CHARGER_201",
+            "severity": "LOW",
+            "message": "Yüksek hızlı EV şarj istasyonlarının (CHARGER_201/203) termal profili stabil. Sıcaklıklar 42°C civarında seyrediyor, aktif soğutma devrededir."
+        },
+        {
+            "action": "SPAWN_CHART",
+            "chart_type": "timeline",
+            "device_id": "GRID_HEALTH",
+            "severity": "LOW",
+            "message": "GridPulse 24 saatlik uyumluluk indeksi %98.4 seviyesinde stabil. Şebeke genel frekans ve kararlılık trendi nominal SCADA değerlerindedir."
+        },
+        {
+            "action": "SPAWN_CHART",
+            "chart_type": "compliance_pie",
+            "device_id": "COMPLIANCE_ALERTS",
+            "severity": "LOW",
+            "message": "Kurallara göre tetiklenen uyarı kırılımları incelendiğinde; voltaj dalgalanması %45, termal alarmlar %30, siber uyarılar %25 ağırlığındadır."
+        },
+        {
+            "action": "SPAWN_CHART",
+            "chart_type": "region_bar",
+            "device_id": "REGIONAL_CONSUMPTION",
+            "severity": "LOW",
+            "message": "Bölgesel tüketim profili analiz edildiğinde Westminster 1.2MW ile lider konumdayken, Wembley ve Camden nominal yük altındadır."
+        },
+        {
+            "action": "SPAWN_CHART",
+            "chart_type": "radar",
+            "device_id": "GRID_HEALTH_RADAR",
+            "severity": "LOW",
+            "message": "Şebeke genel stabilite endeksi radar profili nominal durumda. 5 ana boyut (Yük, Voltaj, Termal, Siber, Kural) dengelidir."
+        },
+        {
+            "action": "SPAWN_CHART",
+            "chart_type": "scatter",
+            "device_id": "ANOMALY_SCATTER",
+            "severity": "LOW",
+            "message": "Son 24 saatlik anomali saçılım (scatter) grafiği. Olay yoğunluğu normal çalışma limitleri arasındadır."
+        },
+        {
+            "action": "SPAWN_CHART",
+            "chart_type": "frequency",
+            "device_id": "GRID_FREQUENCY_LINE",
+            "severity": "LOW",
+            "message": "Şebeke frekansı 50.02 Hz nominal seviyede stabil. Faz açısı sapmaları +/- 0.05 Hz sınırları içerisindedir."
+        },
+        {
+            "action": "SPAWN_CHART",
+            "chart_type": "leakage",
+            "device_id": "SUBSTATION_LOSS_BAR",
+            "severity": "LOW",
+            "message": "Alt şebekedeki aktif kaçak güç ve teknik kayıp oranları analizi. Westminster trafolarında %1.8 ile minimum seviyededir."
+        },
+        {
+            "action": "SPAWN_CHART",
+            "chart_type": "thd",
+            "device_id": "HARMONIC_DISTORTION_AREA",
+            "severity": "LOW",
+            "message": "Total Harmonik Bozulma (THD) profili. Fast-charging EV istasyonlarında THD oranı %3.2 nominal sınırda izlenmektedir."
+        }
+    ]
+    for b in baselines:
+        b["slot_id"] = f"{b['device_id']}:{b['chart_type']}"
+        _register_agent_action(b, "TR")
+
+    agent_logs.append("[SYS] Otonom Ajan Başlatıldı. Şebeke telemetrileri ve kurallar taranıyor...")
+    agent_logs.append("[SYS] Ajan başlatıldı. Başlangıç analiz grafikleri üretiliyor...")
+    agent_logs.append(f"[VISION] 👁 {len(agent_insights)} grafik yorumlandı")
+
+    _send_ops_report("autopilot_start", "TR")
+
+    try:
+        from backend.autonomous_loop import start_autonomous_loop
+        start_autonomous_loop()
+    except Exception as e:
+        agent_logs.append(f"[SYS] Otonom döngü başlatılamadı: {e}")
+    
+    return {"status": "ok", "active": True}
+
+@app.post("/api/agent/stop")
+async def stop_agent():
+    global agent_active, agent_logs
+    agent_active = False
+    agent_logs.append("[SYS] Otonom Ajan Durduruldu. Manuel denetim moduna geçildi.")
+    return {"status": "ok", "active": False}
+
+@app.get("/api/agent/status")
+def get_agent_status_endpoint():
+    return {"active": agent_active, "status": agent_status, "model": agent_model}
+
+
+@app.post("/api/agent/log")
+async def add_agent_log(payload: dict):
+    global agent_logs
+    log_text = payload.get("log", "")
+    if log_text:
+        agent_logs.append(log_text)
+        agent_logs = agent_logs[-100:]
+    return {"status": "ok"}
+
+@app.get("/api/agent/logs")
+def get_agent_logs():
+    return {"logs": agent_logs}
+
+@app.post("/api/agent/action")
+async def add_agent_action(payload: dict):
+    lang = payload.get("lang", "TR")
+    _register_agent_action(payload, lang)
+    return {"status": "ok", "agent_status": agent_status}
+
+@app.get("/api/agent/actions")
+def get_agent_actions():
+    return {"actions": agent_actions, "status": agent_status, "active": agent_active}
+
+@app.post("/api/agent/clear")
+async def clear_agent_actions():
+    global agent_actions, agent_status
+    agent_actions = []
+    agent_status = "SAFE"
+    return {"status": "ok", "agent_status": agent_status}
+
+@app.get("/api/agent/insights")
+def get_agent_insights():
+    global agent_insights
+    if not agent_insights and agent_actions:
+        try:
+            from backend.chart_vision import analyze_all_charts
+            agent_insights = analyze_all_charts(agent_actions, "TR")
+        except Exception:
+            pass
+    return {"insights": list(reversed(agent_insights[-20:]))}
+
+@app.post("/api/agent/insights/refresh")
+async def refresh_agent_insights(payload: dict = None):
+    global agent_insights, agent_logs
+    payload = payload or {}
+    lang = payload.get("lang", "TR")
+    try:
+        from backend.chart_vision import analyze_all_charts
+        agent_insights = analyze_all_charts(agent_actions, lang)
+        for ins in agent_insights[-3:]:
+            agent_logs.append(f"[VISION] 👁 {ins['interpretation']}")
+        agent_logs = agent_logs[-100:]
+    except Exception:
+        pass
+    return {"insights": list(reversed(agent_insights[-20:]))}
+
+@app.get("/api/agent/settings")
+def get_agent_settings():
+    return {"model": GRIDPULSE_MODEL, "available_models": [GRIDPULSE_MODEL]}
+
+@app.post("/api/agent/settings")
+async def update_agent_settings(payload: dict):
+    return {"status": "ok", "model": GRIDPULSE_MODEL}
+
+# ── AGENT CONFIG & REPORTING ─────────────────────────────
+@app.get("/api/agent/config")
+def get_agent_config_endpoint():
+    from backend.report_service import get_agent_config
+    cfg = get_agent_config()
+    cfg["model"] = GRIDPULSE_MODEL
+    cfg["smtp_configured"] = bool(os.environ.get("SMTP_USER") and os.environ.get("SMTP_PASS"))
+    return cfg
+
+@app.post("/api/agent/config")
+async def update_agent_config_endpoint(payload: dict):
+    from backend.report_service import update_agent_config
+    cfg = update_agent_config(payload)
+    cfg["model"] = GRIDPULSE_MODEL
+    return {"status": "ok", "config": cfg}
+
+@app.get("/api/report/history")
+def get_report_history_endpoint():
+    from backend.report_service import get_report_history
+    return {"reports": get_report_history()}
+
+@app.post("/api/report/send")
+async def send_report_endpoint(payload: dict = None):
+    payload = payload or {}
+    lang = payload.get("lang", "TR")
+    report_type = payload.get("report_type", "manual")
+    result = _send_ops_report(report_type, lang, trigger=payload.get("trigger"))
+    return {"status": "ok", "delivery": result}
+
+@app.get("/api/stream_data")
+def get_stream_data():
+    import random
+    devices = ["TRAFO_301", "TRAFO_302", "CHARGER_201", "CHARGER_203", "METER_101", "METER_103"]
+    cities = ["Wembley", "Wimbledon", "Greenwich", "Hackney", "Westminster", "Camden"]
+    device = random.choice(devices)
+    city = random.choice(cities)
+    
+    reason = "NORMAL"
+    if random.random() < 0.40:
+        reason = random.choice(["CRITICAL_OVERLOAD", "OVERHEATING", "VOLTAGE_DROP"])
+        
+    consumption = random.randint(120, 480)
+    voltage = random.randint(218, 242)
+    temp = random.randint(20, 80)
+    
+    if reason == "CRITICAL_OVERLOAD":
+        consumption = random.randint(510, 600)
+    elif reason == "OVERHEATING":
+        temp = random.randint(91, 105)
+    elif reason == "VOLTAGE_DROP":
+        voltage = random.randint(180, 215)
+        
+    return {
+        "device_id": device,
+        "location": city,
+        "consumption": consumption,
+        "voltage": voltage,
+        "temp": temp,
+        "reason": reason,
+        "timestamp": datetime.utcnow().isoformat() + "Z"
+    }
+

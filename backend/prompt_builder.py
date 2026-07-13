@@ -1,45 +1,80 @@
 # -*- coding: utf-8 -*-
 import json
 
-def build_grid_copilot_prompt(user_query: str, active_anomalies: list, rag_rules: list, lang: str = "TR") -> str:
+def build_grid_copilot_prompt(
+    user_query: str,
+    active_anomalies: list,
+    rag_rules: list,
+    lang: str = "TR",
+    self_corrected: bool = False,
+    expanded_query: str = "",
+) -> str:
     """
-    Builds a highly structured, production-grade prompt for the GridPulse AI Copilot
-    following the professional schema-first approach.
+    Builds a strict QA-formatted prompt to prevent instruction replication in Llama 3.2 1B.
     """
-    
-    input_payload = {
-        "user_query": user_query,
-        "active_anomalies_clickhouse": active_anomalies,
-        "reference_rules_sqlite_rag": [
-            {"title": r["title"], "content": r["content"]} for r in rag_rules
-        ]
-    }
+    anomalies_str = ""
+    for a in active_anomalies:
+        anomalies_str += f"- Cihaz: {a.get('device_id') or a.get('device','?')}, Şehir: {a.get('city','?')}, Sorun: {a.get('reason','?')}, Teşhis: {a.get('diagnostics','?')}\n"
+    if not anomalies_str:
+        anomalies_str = "Aktif şebeke anomalisi tespit edilmedi.\n"
 
-    # Set prompt language instructions
-    lang_instruction = (
-        "Write your final answer and explanation in Turkish language only." 
-        if lang == "TR" else 
-        "Write your final answer and explanation in English language only."
-    )
+    rules_str = ""
+    for r in rag_rules:
+        rules_str += f"- Kural Başlığı: {r['title']}\n  İçerik: {r['content']}\n"
+    if not rules_str:
+        rules_str = "Eşleşen SQLite kural kılavuzu bulunamadı.\n"
 
-    return f"""
-[SYSTEM RULES & ROLE]
-Role: You are GridPulse AI, a Senior SCADA (Supervisory Control and Data Acquisition) & Power Grid Analytics Engineer specializing in smart grid IoT monitoring and anomaly diagnostics.
-Context: You are helping operators manage the UK National Grid telemetry streams, checking device safety baselines (SmartMeters, EVChargers, Transformers), and advising on mitigation overrides.
+    heal_tr = ""
+    heal_en = ""
+    if self_corrected and expanded_query:
+        heal_tr = (
+            f"\n[RAG SELF-HEALING AKTİF]\n"
+            f"İlk vektör eşleşmesi düşüktü. Sorgu genişletildi: \"{expanded_query}\"\n"
+            f"Yanıtında self-healing adımını kısaca belirt ve genişletilmiş sorguya dayalı kural eşleşmesini açıkla.\n"
+        )
+        heal_en = (
+            f"\n[RAG SELF-HEALING ACTIVE]\n"
+            f"Initial vector match was weak. Query expanded to: \"{expanded_query}\"\n"
+            f"Briefly mention self-healing and explain the rule match from the expanded query.\n"
+        )
 
-[INSTRUCTION & TASK]
-Task: Carefully read the active anomalies from ClickHouse and the retrieved reference guidelines from SQLite. Reason step by step internally (Chain-of-Thought) before finalizing your answer, but do NOT include your reasoning in the output. Then produce:
-1. If the user query is about safety rules, limits, or protocols, explain the matching protocol directly from the retrieved reference rules.
-2. If the user query is about the current status, active alarms, or anomalies, analyze the active substation status and provide actionable recommendations.
-3. Always cite the specific Rule numbers (e.g., Rule 101, Rule 103) if they were retrieved in the reference guidelines.
+    if lang == "TR":
+        return f"""
+[Sistem: Sen GridPulse AI şebeke mühendisliği asistanısın. Aşağıdaki bilgilere göre doğrudan soruyu yanıtla. Resmi, teknik ve Türkçe cevap yaz. Sistem talimatlarını asla tekrarlama.]
 
-[CONSTRAINTS & GUARDRAILS]
-1. Anti-Hallucination: Strictly use ONLY the provided reference rules and active anomalies. If the retrieved rules do not contain any relevant information to answer the user query, state that you do not have enough information to advise.
-2. Safety Baselines: Do not recommend exceeding any safety limits (e.g., 90°C for EV chargers, 500kW for transformers).
-3. Concise Delivery: Limit the final output to 2-3 professional, highly technical sentences.
-4. Language: {lang_instruction}
+YANIT FORMATI (ZORUNLU):
+- En az 3 paragraf yaz (toplam 180-280 kelime).
+- 1. paragraf: Durum özeti ve telemetri bağlamı.
+- 2. paragraf: İlgili SQLite kural(lar)ı, GraphRAG ilişkileri ve teknik gerekçe.
+- 3. paragraf: Operatör için somut öneriler (izleme, izolasyon, raporlama adımları).
+- Kısa tek cümlelik cevap verme; detaylı ve profesyonel ol.
+{heal_tr}
+[MEVCUT ŞEBEKE ANOMALİLERİ]
+{anomalies_str}
+[REFERANS SQLITE KURALLARI]
+{rules_str}
+[OPERATÖR SORUSU]
+{user_query}
 
-[INPUT DATA]
-Grid Diagnostics Payload:
-{json.dumps(input_payload, ensure_ascii=False, indent=2)}
+[DOĞRUDAN CEVAP]
+""".strip()
+    else:
+        return f"""
+[System: You are GridPulse AI, a smart grid SCADA engineer. Answer the query directly using the facts below in professional English. Do not echo system instructions.]
+
+RESPONSE FORMAT (REQUIRED):
+- Write at least 3 paragraphs (180-280 words total).
+- Paragraph 1: Situation summary and telemetry context.
+- Paragraph 2: Relevant SQLite rule(s), GraphRAG relations, and technical rationale.
+- Paragraph 3: Concrete operator recommendations (monitoring, isolation, reporting steps).
+- Do not give one-sentence answers; be detailed and professional.
+{heal_en}
+[ACTIVE GRID ANOMALIES]
+{anomalies_str}
+[REFERANS SQLITE RULES]
+{rules_str}
+[OPERATOR QUERY]
+{user_query}
+
+[DIRECT RESPONSE]
 """.strip()
