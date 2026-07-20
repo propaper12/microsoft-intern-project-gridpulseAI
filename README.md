@@ -1,3 +1,12 @@
+<img width="2880" height="1614" alt="Ekran görüntüsü 2026-07-20 124408" src="https://github.com/user-attachments/assets/29350908-20a6-4451-aa19-8f16ec7a40e4" />
+<img width="2878" height="1560" alt="Ekran görüntüsü 2026-07-20 124418" src="https://github.com/user-attachments/assets/3e68e0c5-0f4b-4996-90b8-e1e101de7593" />
+<img width="2874" height="1558" alt="Ekran görüntüsü 2026-07-20 124426" src="https://github.com/user-attachments/assets/bdff4081-1c83-4e56-b4e8-e7269743cf46" />
+<img width="2872" height="1536" alt="Ekran görüntüsü 2026-07-20 124433" src="https://github.com/user-attachments/assets/107d2bd3-9ba3-45e4-9cf5-b98ce39388de" />
+<img width="2880" height="1618" alt="Ekran görüntüsü 2026-07-20 124603" src="https://github.com/user-attachments/assets/e1a4293a-b86e-4188-a227-2bc204d30ec1" />
+<img width="2878" height="1532" alt="Ekran görüntüsü 2026-07-20 125050" src="https://github.com/user-attachments/assets/6aea7434-2177-4c5b-89bd-7d87224e65b4" />
+<img width="2880" height="1618" alt="Ekran görüntüsü 2026-07-20 125806" src="https://github.com/user-attachments/assets/adb25594-dd6e-4050-b754-55b462101de8" />
+<img width="2872" height="1626" alt="Ekran görüntüsü 2026-07-20 135916" src="https://github.com/user-attachments/assets/e4b1bb04-9a1d-4aee-bdec-bc5458ff8691" />
+<img width="904" height="570" alt="Ekran görüntüsü 2026-07-15 131315" src="https://github.com/user-attachments/assets/fc75c92a-23d1-4da1-b0c7-3d0e1014a25e" />
 # GridPulse.AI
 
 > **Microsoft Internship Project** — Real-time AI-SCADA monitor for smart cable / transformer grids.
