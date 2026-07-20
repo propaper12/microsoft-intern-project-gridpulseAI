@@ -77,3 +77,9 @@ graph TD
     4.  **🟢 Glowing Service Health LEDs:** A status checker panel in the topbar polling the server status endpoint to confirm database connectivity.
     5.  **🗺️ Interactive Geographical Map:** Visualizes cables dynamically colored by thermal stress.
     6.  **📈 SHAP Feature Importance Bars:** Explainable AI charts explaining the neural model classification.
+
+---
+
+## Voice Agent (frontend)
+
+Grid Copilot supports a conversational **Voice Agent** implemented entirely in the React client (`useAgentVoice` + Web Speech API). Speech is transcribed in-browser, submitted to the existing `POST /api/copilot` endpoint, and the assistant reply is spoken with `speechSynthesis`. Continuous dialog optionally restarts listening after TTS. No additional backend voice routes are required.

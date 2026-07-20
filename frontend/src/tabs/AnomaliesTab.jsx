@@ -22,8 +22,15 @@ export default function AnomaliesTab({
 
   return (
     <div className="anomalies-tab">
-      <div className="content-header">
-        <h2>{t.anomalies_title}</h2>
+      <div className="content-header anomalies-header">
+        <div>
+          <h2>{t.anomalies_title}</h2>
+          <p className="app-page-subtitle">
+            {lang === "TR"
+              ? "Düşük kararlılık skorlu cihazlar — izole et veya teşhis raporunu aç"
+              : "Low stability devices — isolate or open diagnostic report"}
+          </p>
+        </div>
         <div className="anomalies-toolbar">
           <input
             className="search-input"

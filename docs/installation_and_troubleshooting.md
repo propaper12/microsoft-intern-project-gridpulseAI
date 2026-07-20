@@ -37,7 +37,7 @@ Should list: `clickhouse`, `redpanda`, `dragonfly`, and `redpanda-console`.
     ```
 5.  Populate SQLite Vector Knowledge Base:
     ```bash
-    python src/initialize_kb.py
+    python backend/initialize_kb.py
     ```
 
 ### 4. Frontend Setup
@@ -71,7 +71,7 @@ Should list: `clickhouse`, `redpanda`, `dragonfly`, and `redpanda-console`.
 *   **Reason:** The SQLite vector knowledge base is empty or outdated.
 *   **Fix:** Re-populate the database:
     ```bash
-    python src/initialize_kb.py
+    python backend/initialize_kb.py
     ```
     Then restart the FastAPI server so the Uvicorn process reads the fresh SQLite database.
 
@@ -83,3 +83,9 @@ Should list: `clickhouse`, `redpanda`, `dragonfly`, and `redpanda-console`.
     python src/iot_grid_stream.py
     python src/grid_anomaly_detector.py
     ```
+
+---
+
+## Voice Agent
+
+See [`voice_agent.md`](voice_agent.md). Use Chrome/Edge and allow the microphone. On Windows, point the UI at `http://127.0.0.1:8000` (not `localhost`) if API calls fail.

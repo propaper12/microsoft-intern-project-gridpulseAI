@@ -43,3 +43,10 @@ Thumbs.db
 
 # Local Logs & Audit Trails
 logs/
+
+# Extra junk (keep repo lean)
+logs/outbox/
+**/__pycache__/
+*.html.bak
+.cursor/
+

@@ -79,6 +79,11 @@ export default function DashboardTab({ lang, alerts, avgTruth, timeline, breakdo
       <div className="content-header dashboard-header">
         <div>
           <h2>{lang === "TR" ? "Akıllı Şebeke Operasyonları" : "Grid Operations Dashboard"}</h2>
+          <p className="app-page-subtitle">
+            {lang === "TR"
+              ? "Şebeke sağlığı, yük profili ve cihaz dağılımı — canlı akış"
+              : "Grid health, load profile, and device mix — live stream"}
+          </p>
           <div className="dashboard-live-tag">
             <span className="live-dot" />
             LIVE · {new Date().toLocaleTimeString()}

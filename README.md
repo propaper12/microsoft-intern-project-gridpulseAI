@@ -1,74 +1,253 @@
-# GridPulse AI ⚡
+# GridPulse.AI
 
-> **Microsoft Internship Project** – Real-Time AI-SCADA IoT Smart Cable Grid Monitor.
+> **Microsoft Internship Project** — Real-time AI-SCADA monitor for smart cable / transformer grids.
 
-[![Vite Build](https://img.shields.io/badge/Vite-Build%20Success-success?style=flat-square&logo=vite)](https://vite.dev)
-[![FastAPI](https://img.shields.io/badge/FastAPI-v0.110.0-blue?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com)
-[![Ollama](https://img.shields.io/badge/Ollama-Llama%203.2-orange?style=flat-square)](https://ollama.com)
-[![ClickHouse](https://img.shields.io/badge/ClickHouse-OLAP-brightgreen?style=flat-square&logo=clickhouse)](https://clickhouse.com)
+[![Vite](https://img.shields.io/badge/Vite-React-646CFF?style=flat-square&logo=vite)](https://vite.dev)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com)
+[![Ollama](https://img.shields.io/badge/Ollama-llama3.2%3A1b-black?style=flat-square)](https://ollama.com)
+[![License](https://img.shields.io/badge/License-Project-lightgrey?style=flat-square)](#license--authors)
 
-**GridPulse AI**, yeraltı yüksek voltaj güç kabloları ve trafoların telemetri verilerini izleyen, açıklanabilir yapay zeka (XAI SHAP) ile siber güvenlik tehditlerini süzgençten geçiren ve SQLite ile yerel (offline) RAG mimarisini birleştiren kurumsal düzeyde bir **AI-SCADA (Co-SCADA) kontrol odası platformudur**.
+**GridPulse.AI** is an enterprise-style **AI-SCADA (Co-SCADA)** control room: live IoT telemetry, explainable anomaly detection (SHAP), local **GraphRAG** over a SQLite knowledge base, autonomous autopilot, HTML ops reports, and a browser **Voice Agent** for hands-free copilot dialog.
+
+*TR:* Yeraltı yüksek gerilim kablo / trafo telemetrisini izleyen, XAI (SHAP) ile anomali açıklayan, SQLite + GraphRAG ile yerel RAG kullanan ve **Sesli Agent** ile konuşmalı operatör asistanı sunan Microsoft staj projesi.
 
 ---
 
-## 🏛️ Mimari Katmanlar & Teknoloji Yığını
+## Features
 
-| Katman | İşlev | Teknolojiler |
+| Area | What you get |
+| :--- | :--- |
+| **Live telemetry** | Simulated IoT grid stream → Redpanda → Bytewax anomaly pipeline → ClickHouse |
+| **Explainable AI** | SHAP-backed anomaly diagnostics in the dashboard |
+| **Grid Copilot** | `/api/copilot` with SQLite vector search, GraphRAG triplets, grounded replies via **Ollama (`llama3.2:1b`)** |
+| **Autonomous Autopilot** | Agent start/stop, thought logs, actions, optional e-mail / outbox reports |
+| **SCADA UI** | AI Control Room, Dashboard, Anomalies, Copilot + RAG trace panels |
+| **Voice Agent** | Browser Web Speech API: speak → auto-send to copilot → TTS reply → optional continuous dialog (**frontend-only**) |
+| **Offline RAG** | Local SQLite vector KB + entity/relation GraphRAG (no cloud required for retrieval) |
+
+---
+
+## Architecture
+
+```text
+┌─────────────────┐     ┌──────────────┐     ┌────────────────┐
+│ IoT simulator   │────▶│ Redpanda     │────▶│ Bytewax + SHAP │
+│ (grid stream)   │     │ (Kafka API)  │     │ anomaly engine │
+└─────────────────┘     └──────────────┘     └───────┬────────┘
+                                                     ▼
+                                              ClickHouse OLAP
+                                                     │
+┌─────────────────┐     ┌──────────────┐     ┌───────▼────────┐
+│ React + Vite    │◀───▶│ FastAPI      │◀───▶│ SQLite Vector  │
+│ :5173           │ API │ :8000        │     │ + GraphRAG     │
+│ Voice (STT/TTS) │     │ SSE / REST   │     └────────────────┘
+└─────────────────┘     └──────┬───────┘
+                               ▼
+                         Ollama :11434
+                         llama3.2:1b
+```
+
+| Layer | Role | Stack |
 | :--- | :--- | :--- |
-| **Arayüz (Frontend)** | Modern 3 Sütunlu Kontrol Paneli, Akış Şemaları, Monaco Simülatörü | React 18, Vite, React Flow, Recharts |
-| **Sunucu (Backend)** | REST API'ler, SSE (Server-Sent Events) Akışları, Vektör Arama | FastAPI, Python, Uvicorn |
-| **Veri Hattı (Stream Pipeline)** | Yüksek Hızlı Telemetri Toplama, Stateful Filtreleme | Redpanda (Kafka), Bytewax (Rust Engine) |
-| **Veritabanları (Storage)** | Analitik Günlükler, Yerel Vektör Bilgi Bankası, Önbellek | ClickHouse (OLAP), SQLite (Vector), Dragonfly |
-| **Bilişsel Zeka (Local AI)** | Anlamsal RAG Arama, GraphRAG Bağlantıları, Yerel Çıkarım | Ollama (Llama 3.2 1B), scikit-learn, SHAP |
+| **Frontend** | Control room UI, Copilot chat, Voice Agent | React 19, Vite 8, Recharts |
+| **Backend** | REST + SSE, RAG, agent loop, reports | FastAPI, Uvicorn, Python |
+| **Streaming** | Telemetry ingest & anomaly filter | Redpanda, Bytewax |
+| **Storage** | Analytics + local knowledge | ClickHouse, SQLite (vectors/graph), Dragonfly |
+| **LLM** | Local inference for Copilot / agent | Ollama `llama3.2:1b` |
+
+More detail: [`docs/system_architecture.md`](docs/system_architecture.md) · API: [`docs/api_reference.md`](docs/api_reference.md)
 
 ---
 
-## 🚀 Öne Çıkan Yetenekler
+## Screenshots
 
-### 🧠 Canlı Düşünce İzleme (Cognitive Thought Daemon)
-Sağ panelde yer alan turuncu neon pulsing halkalı takip modülü, ajanın arka planda çalışırken gerçekleştirdiği akıl yürütme adımlarını (Reasoning) anlık olarak ekrana basar. Telemetri günlükleri terminalde 2.5 saniyede bir otomatik akar.
+> Add PNGs under `docs/images/` and link them here when available.
 
-### 🔍 Phoenix RAG Trace & Vektör Analizörü
-Yapay Zeka Beyni (`ai_brain`) sekmesinde asistan yanıtlarının altında yer alan trace modülü, RAG çalışma adımlarını görselleştirir:
-- **32-D Vektör Izgarası:** Sorgunun 32 boyutlu vektörünü ısıl matris hücreleri olarak çizer.
-- **Kosinüs Benzerliği:** SQLite eşleşmelerini neon ilerleme barları ile gösterir.
-- **GraphRAG:** Entity-Relation ilişkilerini mini SVG şemasıyla modeller.
-- **Groundedness:** Yanıtın kaynak doğruluğunu ölçer.
-
-### ⚡ İnteraktif RAG Sorgu Konsolu
-Bilgi Bankası sekmesinde bulunan arama çubuğu sayesinde operatör şebeke terimleriyle semantik arama yapabilir, vektör hücrelerinin anlık parlamasını canlı izleyebilir.
+| Screen | Placeholder |
+| :--- | :--- |
+| Landing / Control Room | `docs/images/control-room.png` |
+| Grid Copilot + RAG Trace | `docs/images/copilot-rag.png` |
+| Voice Agent mode | `docs/images/voice-agent.png` |
+| Autopilot HUD | `docs/images/autopilot.png` |
 
 ---
 
-## ⚙️ Hızlı Çalıştırma Kılavuzu
+## Quick start
+
+### Prerequisites
+
+- Python 3.10+ recommended  
+- Node.js 18+  
+- Docker Desktop (Redpanda, ClickHouse, Dragonfly)  
+- [Ollama](https://ollama.com) with model: `ollama pull llama3.2:1b`  
+- **Chrome / Edge** for Voice Agent (Web Speech API)
+
+### 1. Infrastructure
 
 ```bash
-# 1. Konteyner Altyapısını Başlatın (Redpanda, ClickHouse)
 docker compose up -d
+```
 
-# 2. Python Ortamını Hazırlayın ve Bağımlılıkları Yükleyin
+### 2. Backend
+
+```bash
 python -m venv venv
+# Windows
 venv\Scripts\activate
-pip install -r requirements.txt
+# macOS / Linux
+# source venv/bin/activate
 
-# 3. SQLite Bilgi Bankasını İlklendirin
+pip install -r requirements.txt
 python backend/initialize_kb.py
 
-# 4. Servisleri Ayrı Terminallerde Çalıştırın
-uvicorn backend.api:app --reload --port 8000
+# optional: copy env for SMTP reports
+copy .env.example .env   # Windows
+# cp .env.example .env   # Unix
+
+uvicorn backend.api:app --reload --host 127.0.0.1 --port 8000
+```
+
+In other terminals (optional live pipeline):
+
+```bash
 python backend/iot_grid_stream.py
 python backend/grid_anomaly_detector.py
+```
 
-# 5. Arayüzü Başlatın
+### 3. Frontend
+
+```bash
 cd frontend
 npm install
 npm run dev
 ```
 
+- UI: **http://127.0.0.1:5173**  
+- API: **http://127.0.0.1:8000**
+
+**Windows note:** Prefer `127.0.0.1` over `localhost`. On many Windows setups `localhost` resolves to `::1` and can hit the wrong listener; the app defaults API base to `http://127.0.0.1:8000` (`frontend/src/utils/apiBase.js`). Vite also proxies `/api` → `127.0.0.1:8000`.
+
+Override if needed:
+
+```bash
+# frontend/.env.local
+VITE_API_BASE=http://127.0.0.1:8000
+```
+
+### 4. Production frontend build
+
+```bash
+cd frontend
+npm run build
+npm run preview
+```
+
 ---
 
-## 🛡️ Microsoft Jüri Sunum Senaryoları
+## Environment variables
 
-1. **AI Control Room:** Sol menüden Yapay Zeka Beyni sekmesine geçin. Sağ paneldeki sinaps frekansını ve Autopilot durumunu jüriye gösterin.
-2. **Canlı Sorgu & Düşünce Akışı:** Sohbet kutusuna *"Trafo 301 durum analizi yap"* yazın. Sağdaki **Cognitive Thought** panelinde ajanın adımlarını ve alttaki terminal akışını canlı izletin.
-3. **Phoenix RAG Trace:** Cevapların altındaki *"RAG Analiz Raporu"* butonuna tıklayarak 32 boyutlu vektör hücre matrisini ve **GraphRAG bilgi grafiğini** jüriye sunun.
+Root `.env` (loaded by the backend; see `.env.example`):
+
+| Variable | Purpose |
+| :--- | :--- |
+| `GRIDPULSE_OPS_EMAIL` | Ops recipient for reports |
+| `SMTP_HOST` / `SMTP_PORT` | Mail server (default Gmail SMTP) |
+| `SMTP_USER` / `SMTP_PASS` | SMTP credentials (use app password) |
+| `SMTP_FROM` | From address |
+
+Without SMTP, reports are still written under `logs/outbox/` (gitignored).
+
+Frontend (optional):
+
+| Variable | Purpose |
+| :--- | :--- |
+| `VITE_API_BASE` | API origin (default `http://127.0.0.1:8000`) |
+
+**Do not commit** real `.env` secrets.
+
+---
+
+## How to use: Autopilot
+
+1. Start backend (+ Ollama online).  
+2. Open the app → **AI Control Room** / agent HUD.  
+3. Start Autopilot (`POST /api/agent/start` via UI).  
+4. Watch status, thought stream, actions, and optional report delivery.  
+5. Stop when done (`/api/agent/stop`).
+
+Autopilot drives the autonomous loop (`backend/autonomous_loop.py`) and integrates with report service when configured.
+
+---
+
+## How to use: Voice Agent (Sesli Agent)
+
+Full guide: [`docs/voice_agent.md`](docs/voice_agent.md)
+
+1. Open **Grid AI Copilot** (chat terminal).  
+2. Click **Sesli Agent** / **Talk to Agent**.  
+3. Allow microphone access. Listening starts automatically; or use the mic button.  
+4. Speak a question → transcript is **auto-submitted** to `/api/copilot`.  
+5. The reply is spoken with browser **TTS**.  
+6. Leave **Sürekli diyalog / Continuous dialog** on for listen → ask → speak → listen loops.
+
+Classic mode (agent off): mic fills the input; optional speaker button reads AI replies only.
+
+Requires HTTPS or `localhost`/`127.0.0.1` and a Chromium-based browser.
+
+---
+
+## Tech stack
+
+- **Frontend:** React 19, Vite 8, Axios, Recharts, Web Speech API (STT/TTS)  
+- **Backend:** FastAPI, Uvicorn, ClickHouse Connect, kafka-python, Bytewax  
+- **AI / RAG:** Ollama `llama3.2:1b`, SQLite vector store, GraphRAG, SHAP / scikit-learn  
+- **Infra:** Docker Compose — Redpanda, ClickHouse, Dragonfly  
+
+---
+
+## Documentation
+
+| Doc | Topic |
+| :--- | :--- |
+| [Voice Agent](docs/voice_agent.md) | Sesli Agent usage & browser notes |
+| [System architecture](docs/system_architecture.md) | Pipelines & components |
+| [API reference](docs/api_reference.md) | REST endpoints |
+| [Installation & troubleshooting](docs/installation_and_troubleshooting.md) | Setup issues |
+| [SQLite vector search](docs/sqlite_vector_search.md) | Local RAG |
+| [GraphRAG evaluation](docs/graph_rag_evaluation.md) | Graph retrieval |
+| [Anomaly / SHAP](docs/anomaly_detection_shap.md) | XAI |
+| [Prompt engineering](docs/prompt_engineering_guide.md) | Copilot prompts |
+
+---
+
+## Demo script (jury / internship)
+
+1. **Control Room** — Show service LEDs (ClickHouse, SQLite, Ollama) and Autopilot.  
+2. **Copilot** — Ask e.g. *“Trafo 301 durum analizi yap”* and open the RAG trace (vector, cosine hits, GraphRAG).  
+3. **Voice Agent** — Enable Sesli Agent, ask the same question by voice; show continuous dialog.  
+4. **Anomalies / Dashboard** — Point to live metrics and SHAP explanation where available.  
+5. **Report** — Trigger an ops report; show outbox or SMTP delivery.
+
+---
+
+## Repository
+
+- GitHub: [propaper12/microsoft-intern-project-gridpulseAI](https://github.com/propaper12/microsoft-intern-project-gridpulseAI)
+
+---
+
+## License & authors
+
+Internship / academic Microsoft project — **GridPulse.AI**.
+
+- Author context: Ömer Can (repo: [propaper12](https://github.com/propaper12))  
+- No formal `LICENSE` file in-repo; treat as educational source unless otherwise agreed with Microsoft / your university.
+
+---
+
+## TR — Kısa özet
+
+1. `docker compose up -d`  
+2. `pip install -r requirements.txt` → `python backend/initialize_kb.py` → `uvicorn backend.api:app --host 127.0.0.1 --port 8000`  
+3. `cd frontend && npm install && npm run dev` → **http://127.0.0.1:5173**  
+4. Copilot’ta **Sesli Agent** ile konuşmalı sorgu; Autopilot ile otonom izleme.

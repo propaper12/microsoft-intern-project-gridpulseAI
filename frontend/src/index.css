@@ -553,6 +553,143 @@ body {
   font-family: var(--font-ui);
 }
 
+.voice-btn {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.06s ease;
+}
+.voice-btn:hover {
+  border-color: rgba(59, 158, 255, 0.6);
+  color: var(--cyan);
+}
+.voice-btn:active {
+  transform: translateY(1px);
+}
+.voice-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.voice-btn--listening {
+  border-color: rgba(34, 197, 94, 0.6);
+  background: rgba(34, 197, 94, 0.08);
+  color: var(--green);
+}
+.voice-btn--active {
+  border-color: rgba(59, 158, 255, 0.6);
+  background: rgba(59, 158, 255, 0.08);
+  color: var(--cyan);
+}
+
+.voice-hint {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.voice-hint--agent {
+  color: var(--cyan);
+  font-size: 12px;
+}
+.voice-hint--thinking {
+  color: rgba(250, 204, 21, 0.95);
+}
+.voice-hint--listening {
+  color: var(--green);
+}
+
+.chat-terminal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.chat-terminal-header__title {
+  flex: 1;
+  min-width: 0;
+}
+.chat-terminal-header__actions {
+  flex-shrink: 0;
+}
+.btn-agent-voice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  border-radius: 8px;
+  border: 1px solid rgba(59, 158, 255, 0.35);
+  background: rgba(59, 158, 255, 0.06);
+  color: var(--cyan);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.btn-agent-voice:hover {
+  border-color: rgba(59, 158, 255, 0.65);
+  background: rgba(59, 158, 255, 0.12);
+}
+.btn-agent-voice--on {
+  border-color: rgba(34, 197, 94, 0.55);
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--green);
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.15);
+}
+.chat-terminal--agent-voice {
+  border-color: rgba(34, 197, 94, 0.25);
+}
+.agent-voice-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  margin: 0 0 10px;
+  border-radius: 8px;
+  background: rgba(34, 197, 94, 0.06);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+.agent-voice-bar__continuous {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-main);
+  cursor: pointer;
+  user-select: none;
+}
+.agent-voice-bar__continuous input {
+  accent-color: var(--green);
+}
+.agent-voice-bar__pulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(148, 163, 184, 0.35);
+  flex-shrink: 0;
+}
+.agent-voice-bar__pulse--live {
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.75);
+  animation: agent-voice-pulse 1.2s ease-in-out infinite;
+}
+@keyframes agent-voice-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.65; transform: scale(0.92); }
+}
+.voice-btn--agent-mode.voice-btn--listening {
+  animation: agent-voice-pulse 1s ease-in-out infinite;
+}
+
 /* Otonom SCADA Merkezi — grafik tuvali (izole layout, çakışma yok) */
 .scada-canvas {
   overflow: hidden;

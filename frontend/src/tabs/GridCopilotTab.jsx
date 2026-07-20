@@ -31,7 +31,7 @@ export default function GridCopilotTab({
       <div className="content-header copilot-page-header">
         <div>
           <h2>{lang === "TR" ? "Grid AI Copilot" : "Grid AI Copilot"}</h2>
-          <p className="copilot-page-subtitle">
+          <p className="copilot-page-subtitle app-page-subtitle">
             {lang === "TR"
               ? "RAG destekli şebeke asistanı — soru sor, kural eşleşmesini ve GraphRAG izini canlı izle"
               : "RAG-powered grid assistant — ask questions, watch rule matching and GraphRAG trace live"}

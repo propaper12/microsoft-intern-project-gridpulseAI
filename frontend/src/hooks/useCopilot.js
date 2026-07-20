@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { playSynthBeep } from "../utils/constants";
+import { apiUrl } from "../utils/apiBase";
 
 export function useCopilot(lang, { setAgentStatus, setActiveThought, setAgentLogs }) {
   const [chatMessages, setChatMessages] = useState([{ id: 1, sender: "ai", textKey: "copilot_intro" }]);
@@ -32,7 +33,7 @@ export function useCopilot(lang, { setAgentStatus, setActiveThought, setAgentLog
       }, 1200);
 
       try {
-        const response = await fetch("/api/copilot", {
+        const response = await fetch(apiUrl("/api/copilot"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message: text, lang }),

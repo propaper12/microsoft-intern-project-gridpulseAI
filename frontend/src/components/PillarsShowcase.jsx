@@ -59,17 +59,30 @@ const PILLARS = {
   ],
 };
 
-export default function PillarsShowcase({ lang, compact = false, activePillar = null, agentActive = false }) {
+export default function PillarsShowcase({
+  lang,
+  compact = false,
+  activePillar = null,
+  agentActive = false,
+  variant = "default",
+}) {
   const pillars = PILLARS[lang] || PILLARS.TR;
+  const isMarketing = variant === "marketing";
 
   return (
-    <div className={`pillars-showcase ${compact ? "pillars-showcase--compact" : ""}`}>
+    <div
+      className={`pillars-showcase ${compact ? "pillars-showcase--compact" : ""} ${
+        isMarketing ? "pillars-showcase--marketing" : ""
+      }`}
+    >
       {pillars.map((p) => {
         const isActive = activePillar === p.id || (p.id === "agent" && agentActive);
         return (
           <div
             key={p.id}
-            className={`pillar-card pillar-card--${p.accent} ${isActive ? "pillar-card--active" : ""}`}
+            className={`pillar-card pillar-card--${p.accent} ${isActive ? "pillar-card--active" : ""} ${
+              isMarketing ? "pillar-card--marketing" : ""
+            }`}
           >
             <div className="pillar-card-top">
               <span className="pillar-icon">{p.icon}</span>

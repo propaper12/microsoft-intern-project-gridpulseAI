@@ -1,67 +1,60 @@
-import { useState } from "react";
-import PillarsShowcase from "./PillarsShowcase";
+import { useEffect } from "react";
+import LandingNav from "./landing/LandingNav";
+import LandingHero from "./landing/LandingHero";
+import "../styles/landing.css";
+
+const FOOTER = {
+  TR: {
+    tagline: "Telemetri · Otonom Agent · GraphRAG",
+    rights: "Operasyonel zeka platformu",
+  },
+  EN: {
+    tagline: "Telemetry · Autonomous Agent · GraphRAG",
+    rights: "Operational intelligence platform",
+  },
+};
 
 export default function LandingPage({ lang, setLang, darkMode, onLaunch }) {
+  const f = FOOTER[lang] || FOOTER.TR;
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Enter" && !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        const tag = e.target?.tagName?.toLowerCase();
+        if (tag === "input" || tag === "textarea" || tag === "select") return;
+        onLaunch();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onLaunch]);
+
   return (
-    <div className={`landing-page ${darkMode ? "dark" : ""}`}>
-      <div className="grid-background" />
-      <nav className="landing-nav">
-        <div className="landing-brand">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
-          GridPulse.AI
-        </div>
-        <div className="landing-nav-actions">
-          <button type="button" className="btn-ghost" onClick={() => setLang(lang === "TR" ? "EN" : "TR")}>{lang}</button>
-          <button type="button" className="btn-primary" onClick={onLaunch}>
-            {lang === "TR" ? "Konsolu Başlat" : "Launch Console"}
-          </button>
-        </div>
-      </nav>
+    <div className={`landing2-page ${darkMode ? "dark" : ""}`}>
+      <div className="landing2-grid-bg" aria-hidden />
+      <div className="landing2-glow" aria-hidden />
 
-      <div className="landing-hero">
-        <span className="landing-badge">
-          {lang === "TR" ? "Microsoft Staj / SCADA AI Demo" : "Microsoft Internship / SCADA AI Demo"}
+      <LandingNav lang={lang} setLang={setLang} onLaunch={onLaunch} />
+
+      <main className="landing2-main">
+        <LandingHero lang={lang} onLaunch={onLaunch} />
+      </main>
+
+      <footer className="landing2-statusbar">
+        <span className="landing2-statusbar-brand">GridPulse.AI</span>
+        <span className="landing2-statusbar-mid">
+          <span className="live-dot" aria-hidden />
+          {f.tagline}
         </span>
-        <h1>
-          {lang === "TR"
-            ? "3 Motorlu Otonom Şebeke İzleme Platformu"
-            : "3-Engine Autonomous Grid Monitoring Platform"}
-        </h1>
-        <p>
-          {lang === "TR"
-            ? "Anlık telemetri, otonom agent ve GraphRAG — tek konsolda birleşiyor. Agent kritik durumlarda operatöre otomatik e-posta raporu gönderir."
-            : "Live telemetry, autonomous agent and GraphRAG — unified in one console. The agent automatically emails ops reports on critical events."}
-        </p>
-        <button type="button" className="btn-primary btn-lg" onClick={onLaunch}>
-          {lang === "TR" ? "Sisteme Giriş Yap" : "Enter SCADA Console"}
-        </button>
-      </div>
-
-      <section className="landing-pillars-section">
-        <PillarsShowcase lang={lang} />
-      </section>
-
-      <section className="landing-flow">
-        <h3>{lang === "TR" ? "Otonom Agent Akışı" : "Autonomous Agent Flow"}</h3>
-        <div className="landing-flow-steps">
-          {[
-            lang === "TR" ? "Telemetri Tarama" : "Scan Telemetry",
-            lang === "TR" ? "RAG + Kural Eşleşme" : "RAG + Rule Match",
-            lang === "TR" ? "Karar + Grafik" : "Decision + Chart",
-            lang === "TR" ? "E-posta Raporu" : "Email Report",
-          ].map((step, i) => (
-            <div key={step} className="landing-flow-step">
-              <span className="landing-flow-num">{i + 1}</span>
-              <span>{step}</span>
-              {i < 3 && <span className="landing-flow-arrow">→</span>}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <footer className="landing-footer">
-        <span>GridPulseAI &copy; 2026</span>
-        <span>{lang === "TR" ? "Telemetry · Agent · RAG" : "Telemetry · Agent · RAG"}</span>
+        <span className="landing2-statusbar-end">{f.rights}</span>
       </footer>
     </div>
   );

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./index.css";
+import "./styles/app-shell.css";
 
 import LandingPage from "./components/LandingPage";
 import ServiceLEDs from "./components/ServiceLEDs";
@@ -11,6 +12,7 @@ import AnomaliesTab from "./tabs/AnomaliesTab";
 import RagReportTab from "./tabs/RagReportTab";
 
 import { TRANSLATIONS, gridStations, playSynthBeep, GRIDPULSE_MODEL } from "./utils/constants";
+import { apiUrl } from "./utils/apiBase";
 import { useSSEStream } from "./hooks/useSSEStream";
 import { useAgentPolling } from "./hooks/useAgentPolling";
 import { useCopilot } from "./hooks/useCopilot";
@@ -70,7 +72,7 @@ function App() {
   }, [darkMode]);
 
   useEffect(() => {
-    fetch("/api/rules")
+    fetch(apiUrl("/api/rules"))
       .then((r) => r.json())
       .then((data) => { if (Array.isArray(data)) setDbRules(data); })
       .catch(() => {});
@@ -78,7 +80,7 @@ function App() {
 
   useEffect(() => {
     const fetchStatus = () => {
-      fetch("/api/status")
+      fetch(apiUrl("/api/status"))
         .then((r) => r.json())
         .then((data) => { if (data?.sqlite_rag) setSystemStatus(data); })
         .catch(() => {});
@@ -138,8 +140,18 @@ function App() {
 
   const t = TRANSLATIONS[lang];
 
+  const topbarPages = {
+    analytics: { title: t.tab_dashboard, sub: lang === "TR" ? "Canlı telemetri ve KPI" : "Live telemetry & KPIs" },
+    ai_brain: { title: t.tab_ai, sub: lang === "TR" ? "Otonom grafik tuvali" : "Autonomous chart canvas" },
+    copilot: { title: t.tab_copilot, sub: lang === "TR" ? "RAG sohbet ve iz sürme" : "RAG chat & trace" },
+    threats: { title: t.tab_anomalies, sub: lang === "TR" ? "Anomali yönetimi" : "Anomaly management" },
+    rag_report: { title: lang === "TR" ? "RAG Raporu" : "RAG Report", sub: lang === "TR" ? "Detaylı iz dökümü" : "Detailed trace export" },
+  };
+  const topbar = topbarPages[activeTab] || topbarPages.ai_brain;
+
   return (
-    <div className={`dashboard ${darkMode ? "dark" : ""}`}>
+    <div className={`dashboard app-shell ${darkMode ? "dark" : ""}`}>
+      <div className="app-shell-grid-bg" aria-hidden="true" />
       <aside className={`sidebar ${sidebarCollapsed ? "collapsed" : ""}`}>
         <div className="sidebar-logo" onClick={() => setSidebarCollapsed(!sidebarCollapsed)} role="button" tabIndex={0}>
           <div className="logo-icon">
@@ -149,34 +161,44 @@ function App() {
         </div>
 
         <nav className="sidebar-nav">
-          <button type="button" className="nav-item nav-item--exit" onClick={() => setIsOnLandingPage(true)}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
-            {!sidebarCollapsed && <span>{lang === "TR" ? "Portala Dön" : "Exit Portal"}</span>}
-          </button>
-          <button type="button" className={`nav-item ${activeTab === "analytics" ? "active" : ""}`} onClick={() => setActiveTab("analytics")}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="9" y1="21" x2="9" y2="9" /></svg>
-            {!sidebarCollapsed && <span>{t.tab_dashboard}</span>}
-          </button>
-          <button type="button" className={`nav-item ${activeTab === "ai_brain" ? "active" : ""}`} onClick={() => setActiveTab("ai_brain")}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
-            {!sidebarCollapsed && <span>{t.tab_ai}</span>}
-          </button>
-          <button type="button" className={`nav-item ${activeTab === "copilot" ? "active" : ""}`} onClick={() => setActiveTab("copilot")}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-            {!sidebarCollapsed && <span>{t.tab_copilot}</span>}
-          </button>
-          <button type="button" className={`nav-item ${activeTab === "threats" ? "active" : ""}`} onClick={() => setActiveTab("threats")}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-            {!sidebarCollapsed && <span>{t.tab_anomalies}</span>}
-          </button>
+          <div className="sidebar-nav-primary">
+            {!sidebarCollapsed && (
+              <div className="sidebar-section-label">{lang === "TR" ? "Konsol" : "Console"}</div>
+            )}
+            <button type="button" className={`nav-item ${activeTab === "analytics" ? "active" : ""}`} onClick={() => setActiveTab("analytics")}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="9" y1="21" x2="9" y2="9" /></svg>
+              {!sidebarCollapsed && <span>{t.tab_dashboard}</span>}
+            </button>
+            <button type="button" className={`nav-item ${activeTab === "ai_brain" ? "active" : ""}`} onClick={() => setActiveTab("ai_brain")}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+              {!sidebarCollapsed && <span>{t.tab_ai}</span>}
+            </button>
+            <button type="button" className={`nav-item ${activeTab === "copilot" ? "active" : ""}`} onClick={() => setActiveTab("copilot")}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+              {!sidebarCollapsed && <span>{t.tab_copilot}</span>}
+            </button>
+            <button type="button" className={`nav-item ${activeTab === "threats" ? "active" : ""}`} onClick={() => setActiveTab("threats")}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+              {!sidebarCollapsed && <span>{t.tab_anomalies}</span>}
+            </button>
+          </div>
+          <div className="sidebar-nav-footer">
+            <button type="button" className="nav-item nav-item--exit" onClick={() => setIsOnLandingPage(true)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+              {!sidebarCollapsed && <span>{lang === "TR" ? "Portala Dön" : "Exit Portal"}</span>}
+            </button>
+            {!sidebarCollapsed && (
+              <div className="sidebar-env-pill">v1 · {lang === "TR" ? "Demo ortam" : "Demo env"}</div>
+            )}
+          </div>
         </nav>
       </aside>
 
       <main className="main-panel">
         <header className="topbar">
           <div className="topbar-title">
-            <span className="text-cyan font-bold">GRIDPULSE.AI</span>
-            <span className="text-muted">— {t.subtitle}</span>
+            <h1 className="app-topbar-page">{topbar.title}</h1>
+            <span className="app-topbar-sub">{topbar.sub}</span>
             <ServiceLEDs systemStatus={systemStatus} />
           </div>
           <div className="topbar-actions">

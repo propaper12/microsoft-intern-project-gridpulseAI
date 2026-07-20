@@ -25,7 +25,7 @@ export default function AIControlRoom({
       <div className="content-header scada-command-header">
         <div>
           <h2>{lang === "TR" ? "Otonom SCADA Merkezi" : "Autonomous SCADA Center"}</h2>
-          <p className="scada-command-subtitle">
+          <p className="scada-command-subtitle app-page-subtitle">
             {lang === "TR"
               ? "Agent yönetimi · canlı grafik tuvali · operasyon & raporlama"
               : "Agent control · live chart canvas · operations & reporting"}

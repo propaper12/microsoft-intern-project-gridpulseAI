@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { playSynthBeep } from "../utils/constants";
+import { apiUrl } from "../utils/apiBase";
 
 export function useSSEStream() {
   const [alerts, setAlerts] = useState([]);
@@ -73,7 +74,7 @@ export function useSSEStream() {
       }
     };
 
-    const eventSource = new EventSource("/api/stream");
+    const eventSource = new EventSource(apiUrl("/api/stream"));
     eventSource.onmessage = (event) => {
       isConnected = true;
       stopSimulation();
@@ -105,9 +106,9 @@ export function useSSEStream() {
     const fetchAnalytics = async () => {
       try {
         const [truthRes, timeRes, breakRes] = await Promise.all([
-          axios.get("/api/stats/truth-score"),
-          axios.get("/api/stats/timeline"),
-          axios.get("/api/stats/fact-check-breakdown"),
+          axios.get(apiUrl("/api/stats/truth-score")),
+          axios.get(apiUrl("/api/stats/timeline")),
+          axios.get(apiUrl("/api/stats/fact-check-breakdown")),
         ]);
         if (truthRes.data?.total) setAvgTruth(truthRes.data.total);
         if (breakRes.data?.data?.length > 0) setBreakdown(breakRes.data.data);

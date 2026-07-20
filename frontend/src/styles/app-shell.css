@@ -1,0 +1,350 @@
+/* GridPulse console shell — aligned with landing SaaS tokens */
+
+.app-shell {
+  --app-radius: 10px;
+  --app-radius-lg: 14px;
+  --app-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 8px 32px rgba(0, 0, 0, 0.35);
+  --app-shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.18);
+  position: relative;
+  isolation: isolate;
+}
+
+.app-shell-grid-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-size: 44px 44px;
+  background-image:
+    linear-gradient(to right, rgba(59, 158, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(59, 158, 255, 0.035) 1px, transparent 1px);
+  opacity: 0.85;
+}
+
+.dashboard:not(.dark) .app-shell-grid-bg {
+  opacity: 0.45;
+  background-image:
+    linear-gradient(to right, rgba(37, 99, 235, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(37, 99, 235, 0.06) 1px, transparent 1px);
+}
+
+.app-shell .sidebar,
+.app-shell .main-panel,
+.app-shell .agent-hud {
+  position: relative;
+  z-index: 1;
+}
+
+/* Sidebar */
+.app-shell .sidebar {
+  width: 232px;
+  padding: 18px 14px;
+  min-height: 100vh;
+  backdrop-filter: blur(10px);
+  background: linear-gradient(180deg, var(--bg-sidebar) 0%, rgba(14, 18, 24, 0.98) 100%);
+}
+
+.dashboard:not(.dark) .app-shell .sidebar {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.app-shell .sidebar.collapsed {
+  width: 72px;
+}
+
+.app-shell .sidebar-logo {
+  margin-bottom: 20px;
+  padding: 4px 6px;
+  border-radius: var(--app-radius);
+}
+
+.app-shell .logo-icon {
+  border-radius: var(--app-radius);
+  box-shadow: 0 0 0 1px rgba(59, 158, 255, 0.12);
+}
+
+.sidebar-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0 12px 8px;
+  opacity: 0.85;
+}
+
+.sidebar.collapsed .sidebar-section-label {
+  display: none;
+}
+
+.app-shell .sidebar-nav {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.sidebar-nav-primary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-nav-footer {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-color);
+}
+
+.app-shell .nav-item {
+  border-left: none;
+  border-radius: var(--app-radius);
+  padding: 10px 12px;
+  font-weight: 500;
+}
+
+.app-shell .nav-item.active {
+  background: linear-gradient(135deg, rgba(59, 158, 255, 0.14), rgba(59, 158, 255, 0.06));
+  border: 1px solid rgba(59, 158, 255, 0.28);
+  box-shadow: 0 0 20px rgba(59, 158, 255, 0.08);
+  color: var(--cyan);
+}
+
+.dashboard:not(.dark) .app-shell .nav-item.active {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.2);
+}
+
+.app-shell .nav-item--exit {
+  border: 1px solid transparent;
+}
+
+.app-shell .nav-item--exit:hover {
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+.sidebar-env-pill {
+  margin-top: 10px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  text-align: center;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
+}
+
+.sidebar.collapsed .sidebar-env-pill {
+  display: none;
+}
+
+/* Topbar */
+.app-shell .topbar {
+  height: 58px;
+  padding: 0 28px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 1px 0 var(--border-color);
+}
+
+.app-topbar-page {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+}
+
+.app-topbar-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.app-shell .service-leds {
+  border-radius: 999px;
+  padding: 5px 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dashboard:not(.dark) .app-shell .service-leds {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.app-shell .lang-select {
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-weight: 500;
+}
+
+.app-shell .icon-btn {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.app-shell .icon-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-color);
+}
+
+.app-shell .notifications-dropdown {
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-soft);
+}
+
+/* Content area */
+.app-shell .content {
+  padding: 22px 28px 28px;
+  gap: 18px;
+}
+
+.app-page-subtitle {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  max-width: 52ch;
+}
+
+.app-shell .content-header h2 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+/* Panels & buttons */
+.app-shell .panel {
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow);
+}
+
+.app-shell .btn-primary {
+  background: linear-gradient(135deg, var(--cyan), #60a5fa);
+  color: #07111f;
+  border-radius: var(--app-radius);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.15) inset;
+}
+
+.dashboard:not(.dark) .app-shell .btn-primary {
+  color: #fff;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+}
+
+.app-shell .btn-ghost {
+  border-radius: var(--app-radius);
+}
+
+.app-shell .kpi-grid .panel,
+.app-shell .kpi-card {
+  border-radius: var(--app-radius-lg);
+}
+
+/* SCADA center */
+.app-shell .orchestrator-banner {
+  border-radius: var(--app-radius-lg);
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.1), rgba(59, 158, 255, 0.06));
+  border: 1px solid rgba(34, 197, 94, 0.22);
+  padding: 12px 16px;
+}
+
+.app-shell .scada-command-canvas .scada-canvas,
+.app-shell .chart-canvas.panel {
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow);
+}
+
+.app-shell .scada-chart-slot {
+  border-radius: var(--app-radius);
+}
+
+/* Copilot */
+.app-shell .copilot-rag-pane,
+.app-shell .copilot-chat-pane .chat-terminal {
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow);
+}
+
+.app-shell .chat-terminal {
+  border: 1px solid var(--border-color);
+  background: var(--bg-panel);
+}
+
+.app-shell .copilot-rag-pane {
+  background: var(--bg-panel);
+}
+
+/* Agent HUD */
+.app-shell .agent-hud {
+  backdrop-filter: blur(8px);
+  background: linear-gradient(180deg, var(--bg-sidebar) 0%, rgba(14, 18, 24, 0.96) 100%);
+}
+
+.dashboard:not(.dark) .app-shell .agent-hud {
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+}
+
+.app-shell .agent-hud--slim {
+  width: 228px;
+}
+
+.app-shell .agent-autopilot-btn {
+  border-radius: var(--app-radius-lg);
+}
+
+.app-shell .agent-stat {
+  border-radius: var(--app-radius);
+}
+
+/* Dashboard & anomalies */
+.app-shell .dashboard-live-tag {
+  margin-top: 6px;
+}
+
+.app-shell .alarm-banner {
+  border-radius: var(--app-radius-lg);
+}
+
+.app-shell .timeframe-btn {
+  border-radius: 8px;
+}
+
+.app-shell .search-input {
+  border-radius: var(--app-radius);
+  min-width: 220px;
+}
+
+.app-shell .anomalies-tab .panel {
+  overflow: hidden;
+}
+
+.anomalies-header {
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Pillars compact in console */
+.app-shell .pillars-showcase--compact .pillar-card {
+  border-radius: var(--app-radius-lg);
+}
+
+@media (max-width: 1100px) {
+  .app-shell .content {
+    padding: 18px 16px 24px;
+  }
+
+  .app-shell .topbar {
+    padding: 0 16px;
+  }
+
+  .app-topbar-sub {
+    display: none;
+  }
+}

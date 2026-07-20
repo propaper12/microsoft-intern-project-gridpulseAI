@@ -164,3 +164,9 @@ Exposes a Server-Sent Events (SSE) stream delivering real-time ClickHouse metric
     *   *Tier 1:* Google Gemini 2.5 Flash API (Cloud-based, primary).
     *   *Tier 2 (Fallback):* Hugging Face Inference API - Mistral-Zephyr-7B (Cloud-based).
     *   *Tier 3 (Local Fallback):* Static regular expression heuristics based on keyword matching.
+
+---
+
+## Voice Agent (frontend)
+
+Conversational voice mode does **not** add new backend routes. The UI uses Web Speech API (STT/TTS) and submits recognized text to `POST /api/copilot` like typed chat. See [voice_agent.md](voice_agent.md).

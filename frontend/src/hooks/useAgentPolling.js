@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { GRIDPULSE_MODEL } from "../utils/constants";
+import { apiUrl } from "../utils/apiBase";
 
 export function useAgentPolling(pollAlways = true) {
   const [spawnedCharts, setSpawnedCharts] = useState([]);
@@ -17,12 +18,12 @@ export function useAgentPolling(pollAlways = true) {
   const fetchAgentData = useCallback(async () => {
     try {
       const [actionsRes, logsRes, statusRes, configRes, historyRes, insightsRes] = await Promise.all([
-        fetch("/api/agent/actions"),
-        fetch("/api/agent/logs"),
-        fetch("/api/agent/status"),
-        fetch("/api/agent/config"),
-        fetch("/api/report/history"),
-        fetch("/api/agent/insights"),
+        fetch(apiUrl("/api/agent/actions")),
+        fetch(apiUrl("/api/agent/logs")),
+        fetch(apiUrl("/api/agent/status")),
+        fetch(apiUrl("/api/agent/config")),
+        fetch(apiUrl("/api/report/history")),
+        fetch(apiUrl("/api/agent/insights")),
       ]);
 
       const actionsData = await actionsRes.json();
@@ -51,7 +52,7 @@ export function useAgentPolling(pollAlways = true) {
 
   const refreshInsights = useCallback(async (lang = "TR") => {
     try {
-      const res = await fetch("/api/agent/insights/refresh", {
+      const res = await fetch(apiUrl("/api/agent/insights/refresh"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ lang }),
@@ -72,7 +73,7 @@ export function useAgentPolling(pollAlways = true) {
   }, [pollAlways, isActive, fetchAgentData]);
 
   const startAgent = async () => {
-    await fetch("/api/agent/start", { method: "POST" }).catch(() => {});
+    await fetch(apiUrl("/api/agent/start"), { method: "POST" }).catch(() => {});
     setIsActive(true);
     setAgentStatus("DIAGNOSING");
     await fetchAgentData();
@@ -80,14 +81,14 @@ export function useAgentPolling(pollAlways = true) {
   };
 
   const stopAgent = async () => {
-    await fetch("/api/agent/stop", { method: "POST" }).catch(() => {});
+    await fetch(apiUrl("/api/agent/stop"), { method: "POST" }).catch(() => {});
     setIsActive(false);
     setAgentStatus("SAFE");
     fetchAgentData();
   };
 
   const updateConfig = async (payload) => {
-    await fetch("/api/agent/config", {
+    await fetch(apiUrl("/api/agent/config"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -96,7 +97,7 @@ export function useAgentPolling(pollAlways = true) {
   };
 
   const sendReportNow = async (lang = "TR") => {
-    await fetch("/api/report/send", {
+    await fetch(apiUrl("/api/report/send"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ report_type: "manual", lang }),
