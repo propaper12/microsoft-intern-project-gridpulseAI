@@ -2,12 +2,25 @@ import { useEffect, useState, useCallback } from "react";
 import { GRIDPULSE_MODEL } from "../utils/constants";
 import { apiUrl } from "../utils/apiBase";
 
+const START_TIMEOUT_MS = 12000;
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = START_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export function useAgentPolling(pollAlways = true) {
   const [spawnedCharts, setSpawnedCharts] = useState([]);
   const [agentStatus, setAgentStatus] = useState("SAFE");
   const [agentLogs, setAgentLogs] = useState([]);
   const [agentInsights, setAgentInsights] = useState([]);
   const [isActive, setIsActive] = useState(false);
+  const [agentError, setAgentError] = useState(null);
   const [agentConfig, setAgentConfig] = useState({
     ops_email: "omercakan5@gmail.com",
     auto_report_enabled: true,
@@ -73,17 +86,49 @@ export function useAgentPolling(pollAlways = true) {
   }, [pollAlways, isActive, fetchAgentData]);
 
   const startAgent = async () => {
-    await fetch(apiUrl("/api/agent/start"), { method: "POST" }).catch(() => {});
+    // Optimistic UI — do not wait for SMTP/bootstrap on the server.
+    setAgentError(null);
     setIsActive(true);
     setAgentStatus("DIAGNOSING");
-    await fetchAgentData();
-    await refreshInsights("TR");
+
+    try {
+      const res = await fetchWithTimeout(apiUrl("/api/agent/start"), { method: "POST" });
+      if (!res.ok) {
+        throw new Error(`Agent start failed (HTTP ${res.status})`);
+      }
+      const data = await res.json().catch(() => ({}));
+      if (data.active === false) {
+        throw new Error("Agent did not activate");
+      }
+      setIsActive(true);
+      await fetchAgentData();
+      refreshInsights("TR");
+    } catch (err) {
+      const message =
+        err?.name === "AbortError"
+          ? "Agent start timed out — is the API on 127.0.0.1:8000 responding?"
+          : err?.message || "Agent start failed";
+      setAgentError(message);
+      setIsActive(false);
+      setAgentStatus("SAFE");
+      console.error("[GridPulse] startAgent:", message);
+    }
   };
 
   const stopAgent = async () => {
-    await fetch(apiUrl("/api/agent/stop"), { method: "POST" }).catch(() => {});
+    setAgentError(null);
     setIsActive(false);
     setAgentStatus("SAFE");
+    try {
+      const res = await fetchWithTimeout(apiUrl("/api/agent/stop"), { method: "POST" }, 8000);
+      if (!res.ok) {
+        throw new Error(`Agent stop failed (HTTP ${res.status})`);
+      }
+    } catch (err) {
+      const message = err?.message || "Agent stop failed";
+      setAgentError(message);
+      console.error("[GridPulse] stopAgent:", message);
+    }
     fetchAgentData();
   };
 
@@ -115,6 +160,7 @@ export function useAgentPolling(pollAlways = true) {
     isActive,
     setIsActive,
     setAgentStatus,
+    agentError,
     agentConfig,
     reportHistory,
     startAgent,

@@ -1,5 +1,6 @@
 import json
 import asyncio
+import threading
 from datetime import datetime
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
@@ -919,123 +920,149 @@ def _send_ops_report(report_type: str, lang: str = "TR", trigger: dict = None) -
         return {"status": "failed", "error": str(ex)}
 
 
+_AGENT_BASELINES = [
+    {
+        "action": "SPAWN_CHART",
+        "chart_type": "load",
+        "device_id": "TRAFO_301",
+        "severity": "LOW",
+        "message": "Şebeke aktif yük dağılımı stabil. TRAFO_301 ana trafosu 320kW yük altında verimli çalışıyor, herhangi bir curtailment veya yük atma ihtiyacı gözlemlenmemiştir.",
+    },
+    {
+        "action": "SPAWN_CHART",
+        "chart_type": "power_factor",
+        "device_id": "METER_101",
+        "severity": "LOW",
+        "message": "Güç faktörü ve reaktif yük analizi nominal seviyede (cos φ ≈ 0.94). Sistemin kapasitif/endüktif dengesi stabil ve kayıplar minimum düzeydedir.",
+    },
+    {
+        "action": "SPAWN_CHART",
+        "chart_type": "voltage",
+        "device_id": "TRAFO_302",
+        "severity": "LOW",
+        "message": "Westminster ve Camden alt şebeke bölgelerindeki voltaj dalgalanmaları kontrol altına alındı. Faz gerilimleri 230V limitleri dahilinde stabil kalmaktadır.",
+    },
+    {
+        "action": "SPAWN_CHART",
+        "chart_type": "temperature",
+        "device_id": "CHARGER_201",
+        "severity": "LOW",
+        "message": "Yüksek hızlı EV şarj istasyonlarının (CHARGER_201/203) termal profili stabil. Sıcaklıklar 42°C civarında seyrediyor, aktif soğutma devrededir.",
+    },
+    {
+        "action": "SPAWN_CHART",
+        "chart_type": "timeline",
+        "device_id": "GRID_HEALTH",
+        "severity": "LOW",
+        "message": "GridPulse 24 saatlik uyumluluk indeksi %98.4 seviyesinde stabil. Şebeke genel frekans ve kararlılık trendi nominal SCADA değerlerindedir.",
+    },
+    {
+        "action": "SPAWN_CHART",
+        "chart_type": "compliance_pie",
+        "device_id": "COMPLIANCE_ALERTS",
+        "severity": "LOW",
+        "message": "Kurallara göre tetiklenen uyarı kırılımları incelendiğinde; voltaj dalgalanması %45, termal alarmlar %30, siber uyarılar %25 ağırlığındadır.",
+    },
+    {
+        "action": "SPAWN_CHART",
+        "chart_type": "region_bar",
+        "device_id": "REGIONAL_CONSUMPTION",
+        "severity": "LOW",
+        "message": "Bölgesel tüketim profili analiz edildiğinde Westminster 1.2MW ile lider konumdayken, Wembley ve Camden nominal yük altındadır.",
+    },
+    {
+        "action": "SPAWN_CHART",
+        "chart_type": "radar",
+        "device_id": "GRID_HEALTH_RADAR",
+        "severity": "LOW",
+        "message": "Şebeke genel stabilite endeksi radar profili nominal durumda. 5 ana boyut (Yük, Voltaj, Termal, Siber, Kural) dengelidir.",
+    },
+    {
+        "action": "SPAWN_CHART",
+        "chart_type": "scatter",
+        "device_id": "ANOMALY_SCATTER",
+        "severity": "LOW",
+        "message": "Son 24 saatlik anomali saçılım (scatter) grafiği. Olay yoğunluğu normal çalışma limitleri arasındadır.",
+    },
+    {
+        "action": "SPAWN_CHART",
+        "chart_type": "frequency",
+        "device_id": "GRID_FREQUENCY_LINE",
+        "severity": "LOW",
+        "message": "Şebeke frekansı 50.02 Hz nominal seviyede stabil. Faz açısı sapmaları +/- 0.05 Hz sınırları içerisindedir.",
+    },
+    {
+        "action": "SPAWN_CHART",
+        "chart_type": "leakage",
+        "device_id": "SUBSTATION_LOSS_BAR",
+        "severity": "LOW",
+        "message": "Alt şebekedeki aktif kaçak güç ve teknik kayıp oranları analizi. Westminster trafolarında %1.8 ile minimum seviyededir.",
+    },
+    {
+        "action": "SPAWN_CHART",
+        "chart_type": "thd",
+        "device_id": "HARMONIC_DISTORTION_AREA",
+        "severity": "LOW",
+        "message": "Total Harmonik Bozulma (THD) profili. Fast-charging EV istasyonlarında THD oranı %3.2 nominal sınırda izlenmektedir.",
+    },
+]
+
+
+def _bootstrap_agent_start():
+    """Charts + ops report off the request path so AUTOPILOT returns immediately."""
+    global agent_logs, agent_insights
+    try:
+        for b in _AGENT_BASELINES:
+            payload = {**b, "slot_id": f"{b['device_id']}:{b['chart_type']}"}
+            _register_agent_action(payload, "TR")
+        agent_logs.append(f"[VISION] 👁 {len(agent_insights)} grafik yorumlandı")
+        agent_logs[:] = agent_logs[-100:]
+    except Exception as e:
+        agent_logs.append(f"[SYS] Başlangıç grafikleri hatası: {e}")
+        agent_logs[:] = agent_logs[-100:]
+    try:
+        _send_ops_report("autopilot_start", "TR")
+    except Exception as e:
+        agent_logs.append(f"[SYS] Başlangıç raporu hatası: {e}")
+        agent_logs[:] = agent_logs[-100:]
+
+
 @app.post("/api/agent/start")
-async def start_agent():
+def start_agent():
+    """Activate agent immediately; heavy bootstrap runs in a daemon thread.
+
+    Must stay a sync ``def`` (threadpool) and must NOT await SMTP/report work —
+    an async handler blocking on SMTP freezes the whole API event loop, so the
+    frontend fetch never resolves and AUTOPILOT appears dead.
+    """
     global agent_active, agent_logs, agent_actions, agent_status, agent_insights
     agent_active = True
     agent_status = "DIAGNOSING"
     agent_actions = []
     agent_insights = []
-    
-    baselines = [
-        {
-            "action": "SPAWN_CHART",
-            "chart_type": "load",
-            "device_id": "TRAFO_301",
-            "severity": "LOW",
-            "message": "Şebeke aktif yük dağılımı stabil. TRAFO_301 ana trafosu 320kW yük altında verimli çalışıyor, herhangi bir curtailment veya yük atma ihtiyacı gözlemlenmemiştir."
-        },
-        {
-            "action": "SPAWN_CHART",
-            "chart_type": "power_factor",
-            "device_id": "METER_101",
-            "severity": "LOW",
-            "message": "Güç faktörü ve reaktif yük analizi nominal seviyede (cos φ ≈ 0.94). Sistemin kapasitif/endüktif dengesi stabil ve kayıplar minimum düzeydedir."
-        },
-        {
-            "action": "SPAWN_CHART",
-            "chart_type": "voltage",
-            "device_id": "TRAFO_302",
-            "severity": "LOW",
-            "message": "Westminster ve Camden alt şebeke bölgelerindeki voltaj dalgalanmaları kontrol altına alındı. Faz gerilimleri 230V limitleri dahilinde stabil kalmaktadır."
-        },
-        {
-            "action": "SPAWN_CHART",
-            "chart_type": "temperature",
-            "device_id": "CHARGER_201",
-            "severity": "LOW",
-            "message": "Yüksek hızlı EV şarj istasyonlarının (CHARGER_201/203) termal profili stabil. Sıcaklıklar 42°C civarında seyrediyor, aktif soğutma devrededir."
-        },
-        {
-            "action": "SPAWN_CHART",
-            "chart_type": "timeline",
-            "device_id": "GRID_HEALTH",
-            "severity": "LOW",
-            "message": "GridPulse 24 saatlik uyumluluk indeksi %98.4 seviyesinde stabil. Şebeke genel frekans ve kararlılık trendi nominal SCADA değerlerindedir."
-        },
-        {
-            "action": "SPAWN_CHART",
-            "chart_type": "compliance_pie",
-            "device_id": "COMPLIANCE_ALERTS",
-            "severity": "LOW",
-            "message": "Kurallara göre tetiklenen uyarı kırılımları incelendiğinde; voltaj dalgalanması %45, termal alarmlar %30, siber uyarılar %25 ağırlığındadır."
-        },
-        {
-            "action": "SPAWN_CHART",
-            "chart_type": "region_bar",
-            "device_id": "REGIONAL_CONSUMPTION",
-            "severity": "LOW",
-            "message": "Bölgesel tüketim profili analiz edildiğinde Westminster 1.2MW ile lider konumdayken, Wembley ve Camden nominal yük altındadır."
-        },
-        {
-            "action": "SPAWN_CHART",
-            "chart_type": "radar",
-            "device_id": "GRID_HEALTH_RADAR",
-            "severity": "LOW",
-            "message": "Şebeke genel stabilite endeksi radar profili nominal durumda. 5 ana boyut (Yük, Voltaj, Termal, Siber, Kural) dengelidir."
-        },
-        {
-            "action": "SPAWN_CHART",
-            "chart_type": "scatter",
-            "device_id": "ANOMALY_SCATTER",
-            "severity": "LOW",
-            "message": "Son 24 saatlik anomali saçılım (scatter) grafiği. Olay yoğunluğu normal çalışma limitleri arasındadır."
-        },
-        {
-            "action": "SPAWN_CHART",
-            "chart_type": "frequency",
-            "device_id": "GRID_FREQUENCY_LINE",
-            "severity": "LOW",
-            "message": "Şebeke frekansı 50.02 Hz nominal seviyede stabil. Faz açısı sapmaları +/- 0.05 Hz sınırları içerisindedir."
-        },
-        {
-            "action": "SPAWN_CHART",
-            "chart_type": "leakage",
-            "device_id": "SUBSTATION_LOSS_BAR",
-            "severity": "LOW",
-            "message": "Alt şebekedeki aktif kaçak güç ve teknik kayıp oranları analizi. Westminster trafolarında %1.8 ile minimum seviyededir."
-        },
-        {
-            "action": "SPAWN_CHART",
-            "chart_type": "thd",
-            "device_id": "HARMONIC_DISTORTION_AREA",
-            "severity": "LOW",
-            "message": "Total Harmonik Bozulma (THD) profili. Fast-charging EV istasyonlarında THD oranı %3.2 nominal sınırda izlenmektedir."
-        }
-    ]
-    for b in baselines:
-        b["slot_id"] = f"{b['device_id']}:{b['chart_type']}"
-        _register_agent_action(b, "TR")
-
     agent_logs.append("[SYS] Otonom Ajan Başlatıldı. Şebeke telemetrileri ve kurallar taranıyor...")
     agent_logs.append("[SYS] Ajan başlatıldı. Başlangıç analiz grafikleri üretiliyor...")
-    agent_logs.append(f"[VISION] 👁 {len(agent_insights)} grafik yorumlandı")
-
-    _send_ops_report("autopilot_start", "TR")
+    agent_logs[:] = agent_logs[-100:]
 
     try:
         from backend.autonomous_loop import start_autonomous_loop
         start_autonomous_loop()
     except Exception as e:
         agent_logs.append(f"[SYS] Otonom döngü başlatılamadı: {e}")
-    
+        agent_logs[:] = agent_logs[-100:]
+
+    threading.Thread(target=_bootstrap_agent_start, daemon=True, name="agent-start-bootstrap").start()
     return {"status": "ok", "active": True}
 
+
 @app.post("/api/agent/stop")
-async def stop_agent():
-    global agent_active, agent_logs
+def stop_agent():
+    global agent_active, agent_logs, agent_status
     agent_active = False
+    agent_status = "SAFE"
     agent_logs.append("[SYS] Otonom Ajan Durduruldu. Manuel denetim moduna geçildi.")
+    agent_logs[:] = agent_logs[-100:]
+    # Keep the loop thread alive; it idles while agent_active is False.
     return {"status": "ok", "active": False}
 
 @app.get("/api/agent/status")
@@ -1044,7 +1071,8 @@ def get_agent_status_endpoint():
 
 
 @app.post("/api/agent/log")
-async def add_agent_log(payload: dict):
+def add_agent_log(payload: dict):
+    """Sync so the autonomous loop worker thread can log without the event loop."""
     global agent_logs
     log_text = payload.get("log", "")
     if log_text:
@@ -1057,7 +1085,8 @@ def get_agent_logs():
     return {"logs": agent_logs}
 
 @app.post("/api/agent/action")
-async def add_agent_action(payload: dict):
+def add_agent_action(payload: dict):
+    """Sync so the autonomous loop can POST charts from a worker thread."""
     lang = payload.get("lang", "TR")
     _register_agent_action(payload, lang)
     return {"status": "ok", "agent_status": agent_status}

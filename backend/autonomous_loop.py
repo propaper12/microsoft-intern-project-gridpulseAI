@@ -330,7 +330,8 @@ def _loop():
 
 def start_autonomous_loop():
     global _loop_thread, _loop_running
-    if _loop_running:
+    if _loop_thread is not None and _loop_thread.is_alive():
+        _loop_running = True
         return
     _loop_running = True
     _loop_thread = threading.Thread(target=_loop, daemon=True, name="gridpulse-autonomous")

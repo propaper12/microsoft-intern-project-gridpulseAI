@@ -47,6 +47,7 @@ function App() {
     model,
     isActive: agentActive,
     setAgentStatus,
+    agentError,
     agentConfig,
     reportHistory,
     startAgent,
@@ -303,6 +304,7 @@ function App() {
         setActiveThought={setActiveThought}
         agentLogs={agentLogs}
         spawnedCount={spawnedCharts.length}
+        agentError={agentError}
         onStart={startAgent}
         onStop={stopAgent}
       />

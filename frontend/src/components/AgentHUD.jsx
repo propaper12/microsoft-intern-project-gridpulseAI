@@ -22,6 +22,7 @@ export default function AgentHUD({
   setActiveThought,
   agentLogs,
   spawnedCount,
+  agentError,
   onStart,
   onStop,
 }) {
@@ -68,6 +69,11 @@ export default function AgentHUD({
             </button>
           </div>
         )}
+        {agentError ? (
+          <p className="agent-hud-error" role="alert">
+            {agentError}
+          </p>
+        ) : null}
       </div>
 
       <div className="agent-hud-pulse-wrap">
